@@ -1,0 +1,9 @@
+.venv/
+.env
+__pycache__/
+.pytest_cache/
+data/products_live.json
+data/products_live.source.json
+reports/*
+outputs/*
+evidence/*
