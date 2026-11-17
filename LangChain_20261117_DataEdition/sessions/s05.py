@@ -7,9 +7,11 @@ from app.report import save_report
 
 def main():
     p = parser(); p.add_argument("--question"); args = p.parse_args()
+
     records = read_catalog(args.data); request = sample_requests(records)[0]
     if args.question is not None: request["question"] = args.question
     settings = Settings.read(args.mock); chain = build_chain(make_model(settings), records)
+    
     try:
         answer = chain.invoke(request); row = {**request, "answer": answer, "status": "ok"}
     except Exception as error:
