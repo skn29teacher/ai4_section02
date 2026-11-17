@@ -35,7 +35,7 @@ def save_report(session, records, result_rows, data_path, settings=None, notes=N
     text += '</style><main><p>2026-11-17 · LangChain · 제공 자료 활용 실습</p><h1>U2-01 / ' + str(session) + '차시 실행 결과</h1>'
     text += '<div class="badge warn">' + esc(dataset_mode) + '</div><div class="badge">' + esc(mode) + '</div>'
     text += '<p class="meta">데이터: ' + esc(info['file']) + ' / 공급자: ' + esc(provider) + ' / 모델: ' + esc(model) + '</p>'
-    text += '<p class="meta">출처: ' + esc(info['source_url']) + '<br>SHA256: ' + esc(info['sha256']) + '</p>'
+    text += '<p class="meta"> ' + esc(info['source_url']) + '<br>SHA256: ' + esc(info['sha256']) + '</p>'
     text += '<p class="meta">캡처: 데이터 출처·표본 id·입력·결과·실행 모드를 포함해 저장합니다. 기관 승인 화면이 아닙니다.</p>'
     text += ''.join('<p>'+esc(note)+'</p>' for note in (notes or [])) + ''.join(items) + '</main></html>'
     path = folder / (stem + '.html'); path.write_text(text, encoding='utf-8')

@@ -6,7 +6,7 @@
     "resource_id": "D01",
     "name": "Fake Store API 유래 공개 가공 상품 표본",
     "original_api": "https://fakestoreapi.com/products",
-    "source_url": "https://github.com/mivan08/e-commerce-react-tailwindCSS/blob/main/products.json",
+    "source_url": "",
     "source_blob_sha": "a0e2a97aad87e0ede84d11d54d3e8285314141b0",
     "checked_on": "2026-11-16",
     "acquisition": "public_derived_file",

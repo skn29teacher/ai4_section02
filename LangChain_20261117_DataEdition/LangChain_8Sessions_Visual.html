@@ -1279,9 +1279,9 @@ python<span class="w"> </span>-m<span class="w"> </span>sessions.s08
 </tr>
 </tbody>
 </table>
-<p>테디노트·braincrew-lab 자료는 저장소별 이용 조건과 상업적 강의 관련 별도 문구를 확인한 뒤 원문 재사용 여부를 결정해야 한다. 이 교안은 일반 개념과 공식 API에 기반한 자체 설명·코드·도식을 제공한다. LangChain 패키지는 해당 패키지 라이선스에 따라 설치해 사용한다. 원 저장소 전체의 재배포 권한을 부여하는 패키지가 아니다.</p>
+<p> 자료는 저장소별 이용 조건과 상업적 강의 관련 별도 문구를 확인한 뒤 원문 재사용 여부를 결정해야 한다. 이 교안은 일반 개념과 공식 API에 기반한 자체 설명·코드·도식을 제공한다. LangChain 패키지는 해당 패키지 라이선스에 따라 설치해 사용한다. 원 저장소 전체의 재배포 권한을 부여하는 패키지가 아니다.</p>
 <h2>상품 데이터</h2>
-<p>D01 지정 원본: https://fakestoreapi.com/products . 제작 환경에서는 원본 응답 미확보. 포함 표본: https://github.com/mivan08/e-commerce-react-tailwindCSS/blob/main/products.json 의 공개 가공 상품 20개. 해당 프로젝트 MIT 고지는 <code>data/LICENSE_public_snapshot.txt</code>에 보존했다. 파일 해시와 취득 방식은 <code>data/dataset_source.json</code>에 있다. API 원본의 최신 가격·통화·재고를 보장하지 않으며 모델 맥락에는 상품명·분류·설명과 추적 id만 사용한다. 상품 사진을 내려받거나 배포하지 않는다.</p></section><div class="footer">2026.11.17 · KDT AI CAMP · LangChain 프롬프트와 LCEL / 이론·실습 교안</div></main><script>
+<p>D01 지정 원본: https://fakestoreapi.com/products . 제작 환경에서는 원본 응답 미확보. 포함 표본:  의 공개 가공 상품 20개. 해당 프로젝트 MIT 고지는 <code>data/LICENSE_public_snapshot.txt</code>에 보존했다. 파일 해시와 취득 방식은 <code>data/dataset_source.json</code>에 있다. API 원본의 최신 가격·통화·재고를 보장하지 않으며 모델 맥락에는 상품명·분류·설명과 추적 id만 사용한다. 상품 사진을 내려받거나 배포하지 않는다.</p></section><div class="footer">2026.11.17 · KDT AI CAMP · LangChain 프롬프트와 LCEL / 이론·실습 교안</div></main><script>
 const input=document.getElementById('inquiry'),ctx=document.getElementById('context'),sel=document.getElementById('variant');
 function preview(){let q=input.value,c=ctx.value,v=sel.value;let s=v==='weak'?'':v==='role'?'[system] 당신은 쇼핑몰 상담원입니다. 한국어로 답하세요.\n\n':'[system] 상담원 검토용 초안을 작성합니다. 상품 설명을 근거로 답하고, 없는 사실은 만들지 않습니다. 한국어 존댓말로 인사 → 상품 근거 → 다음 행동 순서로 씁니다.\n상품 설명: '+c+'\n\n';document.getElementById('preview').textContent=s+'[human] '+(v==='designed'?'':'참고 상품: '+c+'\n')+'고객 문의: '+q;}
 [input,ctx,sel].forEach(el=>el.addEventListener('input',preview));preview();
