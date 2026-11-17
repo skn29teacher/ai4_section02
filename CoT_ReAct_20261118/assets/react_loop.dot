@@ -1,0 +1,6 @@
+digraph G { graph [rankdir=TB,bgcolor="transparent",pad="0.2",nodesep="0.35",ranksep="0.35"]; node [shape=box,style="rounded,filled",fontname="Noto Sans CJK KR",fontsize=12,color="#aac5d3",fillcolor="#eff7fb",margin="0.16,0.10"]; edge [fontname="Noto Sans CJK KR",fontsize=10,color="#397e8b"];a[label="core.py · run_react()
+문제 + messages"]; b[label="chat(messages)
+공개 Plan / Action / 최종 답"]; c[label="core.py · parse_action()
+형식과 허용 도구 검증",shape=diamond]; d[label="core.py · calculate()
+실제 로컬 계산 → Observation"]; e[label="finished / error / max_turns
+events와 결과 반환"];a->b;b->c;c->d[label="계산 요청"];d->b[label="Observation을 user 메시지로 추가"];c->e[label="최종 답"];b->e[label="API 오류 또는 반복 상한"];}

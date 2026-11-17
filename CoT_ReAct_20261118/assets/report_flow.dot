@@ -1,0 +1,6 @@
+digraph G { graph [rankdir=TB,bgcolor="transparent",pad="0.2",nodesep="0.35",ranksep="0.35"]; node [shape=box,style="rounded,filled",fontname="Noto Sans CJK KR",fontsize=12,color="#aac5d3",fillcolor="#eff7fb",margin="0.16,0.10"]; edge [fontname="Noto Sans CJK KR",fontsize=10,color="#397e8b"];a[label="main.py · make_result()
+원본 위치 + 예측/정답 + events"];b[label="report.py · save_report()
+JSON 저장 / HTML 구성"];c[label="report.py · text_block()
+HTML escape + pre-wrap"];d[label="results/sXX_시각.html
+실제 줄바꿈 · 원본 데이터 출처"];e[label="브라우저 인쇄 → PDF
+또는 결과 창 화면 캡처"];a->b;b->c;c->d;d->e;}

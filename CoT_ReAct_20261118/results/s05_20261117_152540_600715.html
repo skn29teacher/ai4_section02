@@ -1,0 +1,24 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><title>U2-02 실습 결과</title>
+<style>body{font-family:"Noto Sans CJK KR","Malgun Gothic",sans-serif;max-width:1050px;
+margin:36px auto;padding:0 24px;color:#1c2940;line-height:1.75;background:#f4f7fb}
+header,article{background:white;padding:24px;margin:18px 0;border-radius:12px;border:1px solid #dce3ed}
+h1{font-size:26px}h2{font-size:20px}h3{font-size:16px;color:#176e78}
+.result-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7}
+.badge{background:#def3ed;padding:5px 10px;border-radius:6px}
+@media print{body{margin:0;background:white;font-size:10pt}article{break-inside:auto}
+.result-text{white-space:pre-wrap;overflow:visible;max-height:none}}</style><header><h1>2026-11-18 · CoT·ReAct 실습 결과</h1>
+<p>제공 데이터: D04 GSM8K · <a href="https://huggingface.co/datasets/openai/gsm8k/tree/main">https://huggingface.co/datasets/openai/gsm8k/tree/main</a></p>
+<p>비교 항목 1건 · 숫자 파싱 1건 · 정답 일치 1건</p><p>모의 대본의 정답 일치 수는 모델 성능 지표가 아닙니다. 소표본 결과를 GSM8K 전체 점수로 일반화하지 않습니다.</p>
+<p>model=공개 응답 / tool=실제 로컬 계산 / mock=교사 작성 대본. 공개 풀이를 내부 사고 기록으로 해석하지 않습니다.</p></header><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=0 (0부터) · 수업용 ID=gsm8k-main-test-0000
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">Janet’s ducks lay 16 eggs per day. She eats three for breakfast every morning and bakes muffins for her friends every day with four. She sells the remainder at the farmers&#x27; market daily for $2 per fresh duck egg. How much in dollars does she make every day at the farmers&#x27; market?</div><h3>방식 / 실행 모드</h3><div class="result-text">react / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">계산: (16-3-4)*2 = 18
+검증: 남은 달걀 9개에 개당 2달러를 곱했다.
+#### 18</div><h3>1회 · model</h3><div class="result-text">Plan: 필요한 수량과 가격을 계산한다.
+Action: calculator
+Action Input: (16-3-4)*2</div><h3>1회 · tool</h3><div class="result-text">계산식: (16-3-4)*2
+결과: 18</div><h3>2회 · model</h3><div class="result-text">계산: (16-3-4)*2 = 18
+검증: 남은 달걀 9개에 개당 2달러를 곱했다.
+#### 18</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=18 · 원본 정답=18 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">Janet sells 16 - 3 - 4 = &lt;&lt;16-3-4=9&gt;&gt;9 duck eggs a day.
+She makes 9 * 2 = $&lt;&lt;9*2=18&gt;&gt;18 every day at the farmer’s market.
+#### 18</div></article></html>

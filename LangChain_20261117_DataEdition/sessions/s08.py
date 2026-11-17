@@ -11,6 +11,7 @@ from app.report import save_report
 def main():
     p = parser(); p.add_argument("--input", type=Path); p.add_argument("--limit", type=int, default=3, choices=range(1,6)); args=p.parse_args()
     records=read_catalog(args.data)
+    
     if args.input:
         with args.input.open(encoding="utf-8-sig",newline="") as f:
             reader=csv.DictReader(f)

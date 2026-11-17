@@ -1,0 +1,171 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><title>U2-02 실습 결과</title>
+<style>body{font-family:"Noto Sans CJK KR","Malgun Gothic",sans-serif;max-width:1050px;
+margin:36px auto;padding:0 24px;color:#1c2940;line-height:1.75;background:#f4f7fb}
+header,article{background:white;padding:24px;margin:18px 0;border-radius:12px;border:1px solid #dce3ed}
+h1{font-size:26px}h2{font-size:20px}h3{font-size:16px;color:#176e78}
+.result-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7}
+.badge{background:#def3ed;padding:5px 10px;border-radius:6px}
+@media print{body{margin:0;background:white;font-size:10pt}article{break-inside:auto}
+.result-text{white-space:pre-wrap;overflow:visible;max-height:none}}</style><header><h1>2026-11-18 · CoT·ReAct 실습 결과</h1>
+<p>제공 데이터: D04 GSM8K · <a href="https://huggingface.co/datasets/openai/gsm8k/tree/main">https://huggingface.co/datasets/openai/gsm8k/tree/main</a></p>
+<p>비교 항목 18건 · 숫자 파싱 18건 · 정답 일치 18건</p><p>모의 대본의 정답 일치 수는 모델 성능 지표가 아닙니다. 소표본 결과를 GSM8K 전체 점수로 일반화하지 않습니다.</p>
+<p>model=공개 응답 / tool=실제 로컬 계산 / mock=교사 작성 대본. 공개 풀이를 내부 사고 기록으로 해석하지 않습니다.</p></header><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=0 (0부터) · 수업용 ID=gsm8k-main-test-0000
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">Janet’s ducks lay 16 eggs per day. She eats three for breakfast every morning and bakes muffins for her friends every day with four. She sells the remainder at the farmers&#x27; market daily for $2 per fresh duck egg. How much in dollars does she make every day at the farmers&#x27; market?</div><h3>방식 / 실행 모드</h3><div class="result-text">direct / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">#### 18</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=18 · 원본 정답=18 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">Janet sells 16 - 3 - 4 = &lt;&lt;16-3-4=9&gt;&gt;9 duck eggs a day.
+She makes 9 * 2 = $&lt;&lt;9*2=18&gt;&gt;18 every day at the farmer’s market.
+#### 18</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=0 (0부터) · 수업용 ID=gsm8k-main-test-0000
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">Janet’s ducks lay 16 eggs per day. She eats three for breakfast every morning and bakes muffins for her friends every day with four. She sells the remainder at the farmers&#x27; market daily for $2 per fresh duck egg. How much in dollars does she make every day at the farmers&#x27; market?</div><h3>방식 / 실행 모드</h3><div class="result-text">summary / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">계산: (16-3-4)*2 = 18
+검증: 남은 달걀 9개에 개당 2달러를 곱했다.
+#### 18</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=18 · 원본 정답=18 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">Janet sells 16 - 3 - 4 = &lt;&lt;16-3-4=9&gt;&gt;9 duck eggs a day.
+She makes 9 * 2 = $&lt;&lt;9*2=18&gt;&gt;18 every day at the farmer’s market.
+#### 18</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=0 (0부터) · 수업용 ID=gsm8k-main-test-0000
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">Janet’s ducks lay 16 eggs per day. She eats three for breakfast every morning and bakes muffins for her friends every day with four. She sells the remainder at the farmers&#x27; market daily for $2 per fresh duck egg. How much in dollars does she make every day at the farmers&#x27; market?</div><h3>방식 / 실행 모드</h3><div class="result-text">react / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">계산: (16-3-4)*2 = 18
+검증: 남은 달걀 9개에 개당 2달러를 곱했다.
+#### 18</div><h3>1회 · model</h3><div class="result-text">Plan: 필요한 수량과 가격을 계산한다.
+Action: calculator
+Action Input: (16-3-4)*2</div><h3>1회 · tool</h3><div class="result-text">계산식: (16-3-4)*2
+결과: 18</div><h3>2회 · model</h3><div class="result-text">계산: (16-3-4)*2 = 18
+검증: 남은 달걀 9개에 개당 2달러를 곱했다.
+#### 18</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=18 · 원본 정답=18 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">Janet sells 16 - 3 - 4 = &lt;&lt;16-3-4=9&gt;&gt;9 duck eggs a day.
+She makes 9 * 2 = $&lt;&lt;9*2=18&gt;&gt;18 every day at the farmer’s market.
+#### 18</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=1 (0부터) · 수업용 ID=gsm8k-main-test-0001
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">A robe takes 2 bolts of blue fiber and half that much white fiber.  How many bolts in total does it take?</div><h3>방식 / 실행 모드</h3><div class="result-text">direct / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">#### 3</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=3 · 원본 정답=3 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">It takes 2/2=&lt;&lt;2/2=1&gt;&gt;1 bolt of white fiber
+So the total amount of fabric is 2+1=&lt;&lt;2+1=3&gt;&gt;3 bolts of fabric
+#### 3</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=1 (0부터) · 수업용 ID=gsm8k-main-test-0001
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">A robe takes 2 bolts of blue fiber and half that much white fiber.  How many bolts in total does it take?</div><h3>방식 / 실행 모드</h3><div class="result-text">summary / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">계산: 2+2/2 = 3
+검증: 흰색은 파란색 2볼트의 절반이므로 1볼트를 더했다.
+#### 3</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=3 · 원본 정답=3 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">It takes 2/2=&lt;&lt;2/2=1&gt;&gt;1 bolt of white fiber
+So the total amount of fabric is 2+1=&lt;&lt;2+1=3&gt;&gt;3 bolts of fabric
+#### 3</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=1 (0부터) · 수업용 ID=gsm8k-main-test-0001
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">A robe takes 2 bolts of blue fiber and half that much white fiber.  How many bolts in total does it take?</div><h3>방식 / 실행 모드</h3><div class="result-text">react / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">계산: 2+2/2 = 3
+검증: 흰색은 파란색 2볼트의 절반이므로 1볼트를 더했다.
+#### 3</div><h3>1회 · model</h3><div class="result-text">Plan: 필요한 수량과 가격을 계산한다.
+Action: calculator
+Action Input: 2+2/2</div><h3>1회 · tool</h3><div class="result-text">계산식: 2+2/2
+결과: 3</div><h3>2회 · model</h3><div class="result-text">계산: 2+2/2 = 3
+검증: 흰색은 파란색 2볼트의 절반이므로 1볼트를 더했다.
+#### 3</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=3 · 원본 정답=3 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">It takes 2/2=&lt;&lt;2/2=1&gt;&gt;1 bolt of white fiber
+So the total amount of fabric is 2+1=&lt;&lt;2+1=3&gt;&gt;3 bolts of fabric
+#### 3</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=2 (0부터) · 수업용 ID=gsm8k-main-test-0002
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">Josh decides to try flipping a house.  He buys a house for $80,000 and then puts in $50,000 in repairs.  This increased the value of the house by 150%.  How much profit did he make?</div><h3>방식 / 실행 모드</h3><div class="result-text">direct / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">#### 70000.0</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=70000.0 · 원본 정답=70000 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">The cost of the house and repairs came out to 80,000+50,000=$&lt;&lt;80000+50000=130000&gt;&gt;130,000
+He increased the value of the house by 80,000*1.5=&lt;&lt;80000*1.5=120000&gt;&gt;120,000
+So the new value of the house is 120,000+80,000=$&lt;&lt;120000+80000=200000&gt;&gt;200,000
+So he made a profit of 200,000-130,000=$&lt;&lt;200000-130000=70000&gt;&gt;70,000
+#### 70000</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=2 (0부터) · 수업용 ID=gsm8k-main-test-0002
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">Josh decides to try flipping a house.  He buys a house for $80,000 and then puts in $50,000 in repairs.  This increased the value of the house by 150%.  How much profit did he make?</div><h3>방식 / 실행 모드</h3><div class="result-text">summary / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">계산: 80000*2.5-(80000+50000) = 70000.0
+검증: 매각가에서 매입비와 수리비를 뺐다.
+#### 70000.0</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=70000.0 · 원본 정답=70000 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">The cost of the house and repairs came out to 80,000+50,000=$&lt;&lt;80000+50000=130000&gt;&gt;130,000
+He increased the value of the house by 80,000*1.5=&lt;&lt;80000*1.5=120000&gt;&gt;120,000
+So the new value of the house is 120,000+80,000=$&lt;&lt;120000+80000=200000&gt;&gt;200,000
+So he made a profit of 200,000-130,000=$&lt;&lt;200000-130000=70000&gt;&gt;70,000
+#### 70000</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=2 (0부터) · 수업용 ID=gsm8k-main-test-0002
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">Josh decides to try flipping a house.  He buys a house for $80,000 and then puts in $50,000 in repairs.  This increased the value of the house by 150%.  How much profit did he make?</div><h3>방식 / 실행 모드</h3><div class="result-text">react / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">계산: 80000*2.5-(80000+50000) = 70000.0
+검증: 매각가에서 매입비와 수리비를 뺐다.
+#### 70000.0</div><h3>1회 · model</h3><div class="result-text">Plan: 필요한 수량과 가격을 계산한다.
+Action: calculator
+Action Input: 80000*2.5-(80000+50000)</div><h3>1회 · tool</h3><div class="result-text">계산식: 80000*2.5-(80000+50000)
+결과: 70000.0</div><h3>2회 · model</h3><div class="result-text">계산: 80000*2.5-(80000+50000) = 70000.0
+검증: 매각가에서 매입비와 수리비를 뺐다.
+#### 70000.0</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=70000.0 · 원본 정답=70000 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">The cost of the house and repairs came out to 80,000+50,000=$&lt;&lt;80000+50000=130000&gt;&gt;130,000
+He increased the value of the house by 80,000*1.5=&lt;&lt;80000*1.5=120000&gt;&gt;120,000
+So the new value of the house is 120,000+80,000=$&lt;&lt;120000+80000=200000&gt;&gt;200,000
+So he made a profit of 200,000-130,000=$&lt;&lt;200000-130000=70000&gt;&gt;70,000
+#### 70000</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=3 (0부터) · 수업용 ID=gsm8k-main-test-0003
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">James decides to run 3 sprints 3 times a week.  He runs 60 meters each sprint.  How many total meters does he run a week?</div><h3>방식 / 실행 모드</h3><div class="result-text">direct / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">#### 540</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=540 · 원본 정답=540 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">He sprints 3*3=&lt;&lt;3*3=9&gt;&gt;9 times
+So he runs 9*60=&lt;&lt;9*60=540&gt;&gt;540 meters
+#### 540</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=3 (0부터) · 수업용 ID=gsm8k-main-test-0003
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">James decides to run 3 sprints 3 times a week.  He runs 60 meters each sprint.  How many total meters does he run a week?</div><h3>방식 / 실행 모드</h3><div class="result-text">summary / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">계산: 3*3*60 = 540
+검증: 주당 횟수에 회당 거리를 곱했다.
+#### 540</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=540 · 원본 정답=540 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">He sprints 3*3=&lt;&lt;3*3=9&gt;&gt;9 times
+So he runs 9*60=&lt;&lt;9*60=540&gt;&gt;540 meters
+#### 540</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=3 (0부터) · 수업용 ID=gsm8k-main-test-0003
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">James decides to run 3 sprints 3 times a week.  He runs 60 meters each sprint.  How many total meters does he run a week?</div><h3>방식 / 실행 모드</h3><div class="result-text">react / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">계산: 3*3*60 = 540
+검증: 주당 횟수에 회당 거리를 곱했다.
+#### 540</div><h3>1회 · model</h3><div class="result-text">Plan: 필요한 수량과 가격을 계산한다.
+Action: calculator
+Action Input: 3*3*60</div><h3>1회 · tool</h3><div class="result-text">계산식: 3*3*60
+결과: 540</div><h3>2회 · model</h3><div class="result-text">계산: 3*3*60 = 540
+검증: 주당 횟수에 회당 거리를 곱했다.
+#### 540</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=540 · 원본 정답=540 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">He sprints 3*3=&lt;&lt;3*3=9&gt;&gt;9 times
+So he runs 9*60=&lt;&lt;9*60=540&gt;&gt;540 meters
+#### 540</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=4 (0부터) · 수업용 ID=gsm8k-main-test-0004
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">Every day, Wendi feeds each of her chickens three cups of mixed chicken feed, containing seeds, mealworms and vegetables to help keep them healthy.  She gives the chickens their feed in three separate meals. In the morning, she gives her flock of chickens 15 cups of feed.  In the afternoon, she gives her chickens another 25 cups of feed.  How many cups of feed does she need to give her chickens in the final meal of the day if the size of Wendi&#x27;s flock is 20 chickens?</div><h3>방식 / 실행 모드</h3><div class="result-text">direct / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">#### 20</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=20 · 원본 정답=20 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">If each chicken eats 3 cups of feed per day, then for 20 chickens they would need 3*20=&lt;&lt;3*20=60&gt;&gt;60 cups of feed per day.
+If she feeds the flock 15 cups of feed in the morning, and 25 cups in the afternoon, then the final meal would require 60-15-25=&lt;&lt;60-15-25=20&gt;&gt;20 cups of chicken feed.
+#### 20</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=4 (0부터) · 수업용 ID=gsm8k-main-test-0004
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">Every day, Wendi feeds each of her chickens three cups of mixed chicken feed, containing seeds, mealworms and vegetables to help keep them healthy.  She gives the chickens their feed in three separate meals. In the morning, she gives her flock of chickens 15 cups of feed.  In the afternoon, she gives her chickens another 25 cups of feed.  How many cups of feed does she need to give her chickens in the final meal of the day if the size of Wendi&#x27;s flock is 20 chickens?</div><h3>방식 / 실행 모드</h3><div class="result-text">summary / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">계산: 20*3-15-25 = 20
+검증: 하루 필요량에서 이미 준 두 끼를 뺐다.
+#### 20</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=20 · 원본 정답=20 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">If each chicken eats 3 cups of feed per day, then for 20 chickens they would need 3*20=&lt;&lt;3*20=60&gt;&gt;60 cups of feed per day.
+If she feeds the flock 15 cups of feed in the morning, and 25 cups in the afternoon, then the final meal would require 60-15-25=&lt;&lt;60-15-25=20&gt;&gt;20 cups of chicken feed.
+#### 20</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=4 (0부터) · 수업용 ID=gsm8k-main-test-0004
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">Every day, Wendi feeds each of her chickens three cups of mixed chicken feed, containing seeds, mealworms and vegetables to help keep them healthy.  She gives the chickens their feed in three separate meals. In the morning, she gives her flock of chickens 15 cups of feed.  In the afternoon, she gives her chickens another 25 cups of feed.  How many cups of feed does she need to give her chickens in the final meal of the day if the size of Wendi&#x27;s flock is 20 chickens?</div><h3>방식 / 실행 모드</h3><div class="result-text">react / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">계산: 20*3-15-25 = 20
+검증: 하루 필요량에서 이미 준 두 끼를 뺐다.
+#### 20</div><h3>1회 · model</h3><div class="result-text">Plan: 필요한 수량과 가격을 계산한다.
+Action: calculator
+Action Input: 20*3-15-25</div><h3>1회 · tool</h3><div class="result-text">계산식: 20*3-15-25
+결과: 20</div><h3>2회 · model</h3><div class="result-text">계산: 20*3-15-25 = 20
+검증: 하루 필요량에서 이미 준 두 끼를 뺐다.
+#### 20</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=20 · 원본 정답=20 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">If each chicken eats 3 cups of feed per day, then for 20 chickens they would need 3*20=&lt;&lt;3*20=60&gt;&gt;60 cups of feed per day.
+If she feeds the flock 15 cups of feed in the morning, and 25 cups in the afternoon, then the final meal would require 60-15-25=&lt;&lt;60-15-25=20&gt;&gt;20 cups of chicken feed.
+#### 20</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=5 (0부터) · 수업용 ID=gsm8k-main-test-0005
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">Kylar went to the store to buy glasses for his new apartment. One glass costs $5, but every second glass costs only 60% of the price. Kylar wants to buy 16 glasses. How much does he need to pay for them?</div><h3>방식 / 실행 모드</h3><div class="result-text">direct / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">#### 64.0</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=64.0 · 원본 정답=64 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">The discount price of one glass is 60/100 * 5 = $&lt;&lt;60/100*5=3&gt;&gt;3.
+If every second glass is cheaper, that means Kylar is going to buy 16 / 2 = &lt;&lt;16/2=8&gt;&gt;8 cheaper glasses.
+So for the cheaper glasses, Kylar is going to pay 8 * 3 = $&lt;&lt;8*3=24&gt;&gt;24.
+And for the regular-priced glasses, Kylar will pay 8 * 5 = $&lt;&lt;8*5=40&gt;&gt;40.
+So in total Kylar needs to pay 24 + 40 = $&lt;&lt;24+40=64&gt;&gt;64 for the glasses he wants to buy.
+#### 64</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=5 (0부터) · 수업용 ID=gsm8k-main-test-0005
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">Kylar went to the store to buy glasses for his new apartment. One glass costs $5, but every second glass costs only 60% of the price. Kylar wants to buy 16 glasses. How much does he need to pay for them?</div><h3>방식 / 실행 모드</h3><div class="result-text">summary / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">계산: 8*5+8*(5*0.6) = 64.0
+검증: 정가 8개와 할인 가격 8개의 금액을 더했다.
+#### 64.0</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=64.0 · 원본 정답=64 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">The discount price of one glass is 60/100 * 5 = $&lt;&lt;60/100*5=3&gt;&gt;3.
+If every second glass is cheaper, that means Kylar is going to buy 16 / 2 = &lt;&lt;16/2=8&gt;&gt;8 cheaper glasses.
+So for the cheaper glasses, Kylar is going to pay 8 * 3 = $&lt;&lt;8*3=24&gt;&gt;24.
+And for the regular-priced glasses, Kylar will pay 8 * 5 = $&lt;&lt;8*5=40&gt;&gt;40.
+So in total Kylar needs to pay 24 + 40 = $&lt;&lt;24+40=64&gt;&gt;64 for the glasses he wants to buy.
+#### 64</div></article><article><h3>제공 데이터 위치</h3><div class="result-text">D04 · openai/gsm8k · config=main · split=test
+원본 행=5 (0부터) · 수업용 ID=gsm8k-main-test-0005
+원본 필드=question, answer; 수업용 ID는 파생값</div><h3>원본 question</h3><div class="result-text">Kylar went to the store to buy glasses for his new apartment. One glass costs $5, but every second glass costs only 60% of the price. Kylar wants to buy 16 glasses. How much does he need to pay for them?</div><h3>방식 / 실행 모드</h3><div class="result-text">react / mock
+공급자=mock · 모델=teacher-script-v1 · 상태=finished</div><h3>처리 결과</h3><div class="result-text">계산: 8*5+8*(5*0.6) = 64.0
+검증: 정가 8개와 할인 가격 8개의 금액을 더했다.
+#### 64.0</div><h3>1회 · model</h3><div class="result-text">Plan: 필요한 수량과 가격을 계산한다.
+Action: calculator
+Action Input: 8*5+8*(5*0.6)</div><h3>1회 · tool</h3><div class="result-text">계산식: 8*5+8*(5*0.6)
+결과: 64.0</div><h3>2회 · model</h3><div class="result-text">계산: 8*5+8*(5*0.6) = 64.0
+검증: 정가 8개와 할인 가격 8개의 금액을 더했다.
+#### 64.0</div><h3>정답 대조 (모델 입력에는 제외)</h3><div class="result-text">예측=64.0 · 원본 정답=64 · 일치=True</div><h3>원본 answer (표시용 개행 복원)</h3><div class="result-text">The discount price of one glass is 60/100 * 5 = $&lt;&lt;60/100*5=3&gt;&gt;3.
+If every second glass is cheaper, that means Kylar is going to buy 16 / 2 = &lt;&lt;16/2=8&gt;&gt;8 cheaper glasses.
+So for the cheaper glasses, Kylar is going to pay 8 * 3 = $&lt;&lt;8*3=24&gt;&gt;24.
+And for the regular-priced glasses, Kylar will pay 8 * 5 = $&lt;&lt;8*5=40&gt;&gt;40.
+So in total Kylar needs to pay 24 + 40 = $&lt;&lt;24+40=64&gt;&gt;64 for the glasses he wants to buy.
+#### 64</div></article></html>

@@ -1,0 +1,1128 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>2026-11-18 CoT·ReAct 8차시</title><style>@font-face{font-family:Course;src:local("Noto Sans CJK KR")}*{box-sizing:border-box}body{margin:0;color:#20304a;background:#f0f4f9;font-family:Course,"Noto Sans CJK KR","Malgun Gothic",sans-serif;font-size:15px;line-height:1.85}main{max-width:1050px;margin:auto;background:white;padding:40px 58px}h1{font-size:29px;line-height:1.5;color:#123c58;margin:0 0 24px}h2{font-size:21px;color:#126774;margin:32px 0 15px;border-bottom:1px solid #d3e4e8;padding-bottom:8px}h3{font-size:18px}p{margin:12px 0}table{width:100%;border-collapse:collapse;font-size:13px;margin:18px 0;line-height:1.7}th{background:#e8f2f6;color:#174b64}td,th{border:1px solid #d5e0e9;padding:9px 11px;text-align:left;vertical-align:top}pre{background:#f3f6fa;border-left:3px solid #3895a3;padding:14px 16px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font:12px/1.6 "Noto Sans Mono CJK KR",monospace;tab-size:4}code{font:0.9em "Noto Sans Mono CJK KR",monospace}pre code{font:inherit}img{display:block;max-width:100%;max-height:670px;margin:22px auto}figure{margin:22px 0;text-align:center}svg{max-width:100%;height:auto}a{color:#0d7284;overflow-wrap:anywhere}nav{position:sticky;top:0;background:#123c58;padding:10px 18px;display:flex;gap:17px;justify-content:center;z-index:5}nav a{color:white;text-decoration:none;font-size:13px}.lesson{border-top:7px solid #e7f0f5;padding-top:32px;margin-top:50px}.cover-tag{color:#17818a;font-size:14px;letter-spacing:1px} @page{size:A4;margin:18mm 16mm 19mm} @media print{body{background:white;font-size:10.2pt;line-height:1.65}main{padding:0;max-width:none}nav{display:none}h1{font-size:21pt}h2{font-size:15pt;break-after:avoid}h3{break-after:avoid}p{orphans:3;widows:3}pre{font-size:8.2pt;line-height:1.5;padding:9px 11px;white-space:pre-wrap;overflow:visible;max-height:none}table{font-size:9pt}tr{break-inside:avoid}thead{display:table-header-group}img{max-height:180mm;break-inside:avoid}.lesson{break-before:page;border:0;padding:0;margin:0}a{color:inherit;text-decoration:none}}</style></head><body><nav><a href="#s1">1차시</a><a href="#s2">2차시</a><a href="#s3">3차시</a><a href="#s4">4차시</a><a href="#s5">5차시</a><a href="#s6">6차시</a><a href="#s7">7차시</a><a href="#s8">8차시</a></nav><main><h1>CoT·ReAct 프롬프트 작성 실습</h1>
+<p>생성형 AI API의 단계적 처리 관찰</p>
+<p><strong>2026년 11월 18일 · U2-02 · 이규영 강사 · 8차시</strong></p>
+<p>전날의 ChatPromptTemplate·LCEL을 이용해 같은 수학 문장제를 세 방식으로 처리한다. 정답만 요청하는 방식, 핵심 계산식과 짧은 풀이를 요청하는 방식, 계산 도구의 결과를 받아 다음 행동을 결정하는 ReAct 방식이다. 관찰 대상은 공개 응답, 프로그램이 실행한 계산, 메시지의 변화다. 이를 모델의 비공개 내부 사고를 직접 관찰한 기록으로 부르지 않는다.</p>
+<p><strong>수업 데이터 근거:</strong> 사용자가 제공한 캠프 데이터 목록의 <strong>D04 GSM8K</strong>. 원본은 <strong>openai/gsm8k → main 설정 → test 분할 → 0~5번 행</strong>이다. <code>question</code>과 <code>answer</code>를 그대로 보존하고 출처 확인용 필드를 덧붙였다. 원본에는 문제별 ID 필드가 없으므로 <code>gsm8k-main-test-0000</code>처럼 분할·행 번호로 수업용 ID를 만들었다. 이 표본은 6개이며 GSM8K 전체 성능을 측정하는 벤치마크가 아니다.</p>
+<p>데이터 출처: https://huggingface.co/datasets/openai/gsm8k/tree/main</p>
+<table>
+<thead>
+<tr>
+<th>차시</th>
+<th>이번에 작성·관찰할 내용</th>
+<th>시간 배분</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>원본 데이터 위치와 question/answer 분리</td>
+<td>설명 15분 · 코드 15분 · 실행 20분</td>
+</tr>
+<tr>
+<td>2</td>
+<td>기본·간결한 풀이·few-shot 프롬프트</td>
+<td>설명 15분 · 코드 20분 · 실행 15분</td>
+</tr>
+<tr>
+<td>3</td>
+<td>세 공급자 선택과 LCEL 실제 호출</td>
+<td>설명 15분 · 코드 20분 · 실행 15분</td>
+</tr>
+<tr>
+<td>4</td>
+<td>ReAct 메시지 규약과 실제 계산기</td>
+<td>설명 15분 · 코드 20분 · 실행 15분</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Action→실행→Observation 반복</td>
+<td>설명 15분 · 코드 20분 · 실행 15분</td>
+</tr>
+<tr>
+<td>6</td>
+<td>동일 조건의 기본·풀이·ReAct 비교</td>
+<td>설명 10분 · 코드 20분 · 실행 20분</td>
+</tr>
+<tr>
+<td>7</td>
+<td>잘못된 행동·계산 실패·반복 중단</td>
+<td>설명 10분 · 코드 20분 · 실행 20분</td>
+</tr>
+<tr>
+<td>8</td>
+<td>원본 근거가 남는 HTML·PDF와 통합 실행</td>
+<td>설명 10분 · 코드 15분 · 실행 25분</td>
+</tr>
+</tbody>
+</table>
+<p>차시당 50분, 총 400분은 시간표가 별도로 없을 때의 설계 가정이며 휴식은 별도다. Python 함수·dict/list·예외 처리와 전날 템플릿을 재사용하되 필요한 부분을 다시 설명한다. 내일의 Structured Output·Pydantic, 이후의 native Tool Calling·LangGraph는 선수 조건으로 요구하지 않는다. 오늘은 텍스트 규약을 해석하는 작은 Python 반복문으로 원리를 드러낸다.</p>
+<h2>시작 환경</h2>
+<p>Python 3.11 이상에서 실행한다. 아래 명령은 ZIP을 푼 <code>CoT_ReAct_20261118</code> 폴더에서 Windows CMD를 사용하는 예다. Python 3.12 환경에서 제작·로컬 검증했다.</p>
+<pre><code class="language-bat">py -3.12 -m venv .venv
+.venv\Scripts\activate
+python -m pip install -r requirements.txt
+copy .env.example .env
+python main.py --session 1
+</code></pre>
+<p>PowerShell에서 활성화가 제한되면 <code>.\.venv\Scripts\python.exe main.py --session 1</code>처럼 Python을 직접 실행한다. macOS/Linux는 <code>python3 -m venv .venv</code>, <code>source .venv/bin/activate</code> 후 같은 <code>python</code> 명령을 사용한다.</p>
+<p><code>app</code>은 ZIP에 포함된 자체 패키지다. <code>pip install app</code>을 실행하지 않는다. <code>main.py</code>가 있는 루트에서 실행하면 <code>app/core.py</code>, <code>app/providers.py</code>, <code>app/report.py</code>를 가져온다. 설치 대상은 <code>langchain-core</code>와 <code>python-dotenv</code> 두 직접 의존성이다. 세 공급자의 HTTP 요청은 Python 표준 라이브러리로 작성하여 선택하지 않은 SDK까지 설치하지 않는다.</p>
+<p>실제 API를 쓸 때는 <code>.env</code>에서 선택한 공급자의 키와 모델 ID만 채운다. Gemini는 <code>models/</code> 접두어 없이 모델 코드만 사용한다. 모델 ID는 제공 계정의 모델 목록에서 사용 가능한 채팅/텍스트 모델을 선택한다. 예제에 모델 이름을 고정해 계정 권한을 가정하지 않는다.</p>
+<pre><code class="language-dotenv">LLM_PROVIDER=groq
+GROQ_API_KEY=여기에_발급받은_키
+GROQ_MODEL=계정에서_사용가능한_모델_ID
+</code></pre>
+<p><code>gemini</code>이면 <code>GEMINI_API_KEY</code>, <code>GEMINI_MODEL</code>, <code>openai</code>이면 <code>OPENAI_API_KEY</code>, <code>OPENAI_MODEL</code>을 채운다. 키는 결과 파일과 화면에 넣지 않는다. OpenAI는 유료 호출 경로다. Groq·Gemini도 선택한 계정/프로젝트와 모델에서 무료인지 확인한다. Gemini 구독 여부만으로 API 무료 사용을 판단하지 않는다. 공급자 실패 시 자동 전환이나 자동 재시도는 하지 않는다.</p>
+<p>기본 실행과 <code>--mock</code>은 <strong>교사 작성 대본 모델</strong>을 사용한다. 계산기는 실제로 동작하지만 모델 품질을 실험하는 실행은 아니다. <code>--live</code>를 붙여야 외부 API를 호출한다. 제작 시 실제 API 키를 사용한 원격 실행은 수행하지 않았으며, 세 공급자의 요청/응답 변환은 모의 HTTP로 검증했다.</p><section class="lesson" id="s1"><h1>1차시 · 데이터 원본과 모델 입력을 구분하기</h1>
+<h2>같은 문제를 비교하려면 먼저 입력을 고정한다</h2>
+<p>쇼핑몰의 매출이나 재고 수량을 설명하는 서비스에서도 수량을 잘못 해석하면 계산이 맞아도 업무 답은 틀릴 수 있다. 오늘은 문제와 수치 정답이 함께 있는 GSM8K로 입력 해석·계산·결과 대조를 분리한다. 원본은 영어 문장제다. 한국어 풀이를 요청하더라도 숫자·질문 원문을 바꾸지 않아 같은 문제를 비교할 수 있게 한다.</p>
+<p>예를 들어 원본 0번 행은 하루 16개 달걀 중 아침 식사에 3개, 머핀에 4개를 쓰고 나머지를 개당 2달러에 판매하는 문제다. 수업용 한국어 요약이며 원문 번역 필드를 새 원본으로 만들지 않는다. 남은 수량은 <code>16-3-4=9</code>, 매출은 <code>9*2=18</code>이다. 16개 전체에 2달러를 곱하면 계산식의 문법은 맞아도 문제 해석이 틀린다.</p>
+<table>
+<thead>
+<tr>
+<th>원본 위치</th>
+<th>수업용 ID</th>
+<th>확인할 수량 관계</th>
+<th>원본 최종 답</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>main/test 0행</td>
+<td>gsm8k-main-test-0000</td>
+<td>남은 달걀 수 × 단가</td>
+<td>18</td>
+</tr>
+<tr>
+<td>main/test 1행</td>
+<td>gsm8k-main-test-0001</td>
+<td>파란 천 + 그 절반의 흰 천</td>
+<td>3</td>
+</tr>
+<tr>
+<td>main/test 2행</td>
+<td>gsm8k-main-test-0002</td>
+<td>가치 증가 후 매각가 − 전체 비용</td>
+<td>70000</td>
+</tr>
+<tr>
+<td>main/test 3행</td>
+<td>gsm8k-main-test-0003</td>
+<td>주당 횟수 × 회당 거리</td>
+<td>540</td>
+</tr>
+<tr>
+<td>main/test 4행</td>
+<td>gsm8k-main-test-0004</td>
+<td>하루 필요량 − 이미 준 양</td>
+<td>20</td>
+</tr>
+<tr>
+<td>main/test 5행</td>
+<td>gsm8k-main-test-0005</td>
+<td>정가 수량 + 할인 수량의 금액</td>
+<td>64</td>
+</tr>
+</tbody>
+</table>
+<p>행 번호는 0부터 센다. 파일의 여섯 항목은 원본 <code>main/test</code>의 처음 여섯 행이며 난이도 대표 표집이 아니다. 제공 목록의 다른 데이터나 임의 쇼핑몰 JSON을 사용한 것이 아니다.</p>
+<h2>작성 파일: app/core.py의 로더</h2>
+<p><code>Path(__file__).resolve().parents[1]</code>은 <code>app/core.py</code>의 상위 프로젝트 폴더를 찾는다. 데이터 경로를 이 폴더에 붙여 실행 위치 때문에 엉뚱한 파일을 읽는 문제를 줄인다. 파일 내용은 JSON 문자열이며 <code>json.loads</code>가 이를 <code>list[dict]</code>로 바꾼다.</p>
+<pre><code class="language-python">def load_records():
+    records = json.loads((ROOT / 'data/gsm8k_sample.json').read_text(encoding='utf-8'))
+    if not records:
+        raise ValueError('데이터가 비어 있습니다.')
+    for row in records:
+        if not all(isinstance(row.get(k), str) and row[k] for k in ('id', 'question', 'answer')):
+            raise ValueError('id/question/answer 문자열이 필요합니다.')
+    return records
+</code></pre>
+<p><code>records[0]</code>은 첫 문제의 dict다. <code>records[0]["question"]</code>은 모델에 보낼 문자열이고 <code>records[0]["answer"]</code>는 실행 후 대조할 정답 설명이다. 로더는 필수 문자열이 있는지만 확인한다. 단위가 맞는지나 수학적으로 올바른지까지 자동 검증하는 함수는 아니다. 빈 배열과 필수 필드 누락은 <code>ValueError</code>로 일찍 알린다.</p>
+<p>정답이 모델 입력에 섞이면 “문제를 풀었는가” 대신 “제공 정답을 복사했는가”를 비교하게 된다. 그래서 이후 모든 호출은 전체 row 대신 <code>row["question"]</code>만 넘긴다. 결과 저장 단계에서만 row를 다시 붙인다.</p>
+<p><figure><svg width="328pt" height="353pt"
+ viewBox="0.00 0.00 328.30 352.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(14.4 338.4)">
+<title>G</title>
+<!-- a -->
+<g id="node1" class="node">
+<title>a</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M241,-324C241,-324 68,-324 68,-324 62,-324 56,-318 56,-312 56,-312 56,-296 56,-296 56,-290 62,-284 68,-284 68,-284 241,-284 241,-284 247,-284 253,-290 253,-296 253,-296 253,-312 253,-312 253,-318 247,-324 241,-324"/>
+<text text-anchor="middle" x="154.5" y="-307.4" font-family="Noto Sans CJK KR" font-size="12.00">data/gsm8k_sample.json</text>
+<text text-anchor="middle" x="154.5" y="-294.4" font-family="Noto Sans CJK KR" font-size="12.00">D04 · main/test · 원본 0~5번 행</text>
+</g>
+<!-- b -->
+<g id="node2" class="node">
+<title>b</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M235.5,-257C235.5,-257 73.5,-257 73.5,-257 67.5,-257 61.5,-251 61.5,-245 61.5,-245 61.5,-229 61.5,-229 61.5,-223 67.5,-217 73.5,-217 73.5,-217 235.5,-217 235.5,-217 241.5,-217 247.5,-223 247.5,-229 247.5,-229 247.5,-245 247.5,-245 247.5,-251 241.5,-257 235.5,-257"/>
+<text text-anchor="middle" x="154.5" y="-240.4" font-family="Noto Sans CJK KR" font-size="12.00">app/core.py · load_records()</text>
+<text text-anchor="middle" x="154.5" y="-227.4" font-family="Noto Sans CJK KR" font-size="12.00">question / answer 분리</text>
+</g>
+<!-- a&#45;&gt;b -->
+<g id="edge1" class="edge">
+<title>a&#45;&gt;b</title>
+<path fill="none" stroke="#397e8b" d="M154.5,-283.85C154.5,-278.74 154.5,-273.09 154.5,-267.56"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="158,-267.24 154.5,-257.24 151,-267.24 158,-267.24"/>
+</g>
+<!-- c -->
+<g id="node3" class="node">
+<title>c</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M162,-180C162,-180 27,-180 27,-180 21,-180 15,-174 15,-168 15,-168 15,-152 15,-152 15,-146 21,-140 27,-140 27,-140 162,-140 162,-140 168,-140 174,-146 174,-152 174,-152 174,-168 174,-168 174,-174 168,-180 162,-180"/>
+<text text-anchor="middle" x="94.5" y="-163.4" font-family="Noto Sans CJK KR" font-size="12.00">build_prompt().invoke()</text>
+<text text-anchor="middle" x="94.5" y="-150.4" font-family="Noto Sans CJK KR" font-size="12.00">question만 입력</text>
+</g>
+<!-- b&#45;&gt;c -->
+<g id="edge2" class="edge">
+<title>b&#45;&gt;c</title>
+<path fill="none" stroke="#397e8b" d="M139.05,-216.69C132.12,-208.02 123.83,-197.66 116.28,-188.23"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="118.88,-185.87 109.9,-180.25 113.41,-190.24 118.88,-185.87"/>
+<text text-anchor="middle" x="149" y="-196" font-family="Noto Sans CJK KR" font-size="10.00">question</text>
+</g>
+<!-- e -->
+<g id="node5" class="node">
+<title>e</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M218.5,-40C218.5,-40 82.5,-40 82.5,-40 76.5,-40 70.5,-34 70.5,-28 70.5,-28 70.5,-12 70.5,-12 70.5,-6 76.5,0 82.5,0 82.5,0 218.5,0 218.5,0 224.5,0 230.5,-6 230.5,-12 230.5,-12 230.5,-28 230.5,-28 230.5,-34 224.5,-40 218.5,-40"/>
+<text text-anchor="middle" x="150.5" y="-23.4" font-family="Noto Sans CJK KR" font-size="12.00">main.py · make_result()</text>
+<text text-anchor="middle" x="150.5" y="-10.4" font-family="Noto Sans CJK KR" font-size="12.00">실행 후 answer와 대조</text>
+</g>
+<!-- b&#45;&gt;e -->
+<g id="edge5" class="edge">
+<title>b&#45;&gt;e</title>
+<path fill="none" stroke="#397e8b" d="M169.16,-216.99C176.09,-206.67 183.5,-193.33 186.5,-180 197.53,-131 204.19,-114.37 187.5,-67 185.17,-60.38 181.43,-54 177.21,-48.22"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="179.77,-45.82 170.79,-40.21 174.31,-50.2 179.77,-45.82"/>
+<text text-anchor="middle" x="248.5" y="-119" font-family="Noto Sans CJK KR" font-size="10.00">answer는 사후 대조에만</text>
+</g>
+<!-- d -->
+<g id="node4" class="node">
+<title>d</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M163,-103C163,-103 12,-103 12,-103 6,-103 0,-97 0,-91 0,-91 0,-79 0,-79 0,-73 6,-67 12,-67 12,-67 163,-67 163,-67 169,-67 175,-73 175,-79 175,-79 175,-91 175,-91 175,-97 169,-103 163,-103"/>
+<text text-anchor="middle" x="87.5" y="-81.9" font-family="Noto Sans CJK KR" font-size="12.00">공개 응답 또는 실제 계산 결과</text>
+</g>
+<!-- c&#45;&gt;d -->
+<g id="edge3" class="edge">
+<title>c&#45;&gt;d</title>
+<path fill="none" stroke="#397e8b" d="M92.66,-139.82C91.89,-131.77 90.98,-122.26 90.14,-113.49"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="93.6,-112.93 89.16,-103.31 86.63,-113.59 93.6,-112.93"/>
+</g>
+<!-- d&#45;&gt;e -->
+<g id="edge4" class="edge">
+<title>d&#45;&gt;e</title>
+<path fill="none" stroke="#397e8b" d="M104.72,-66.78C110.58,-60.92 117.28,-54.22 123.72,-47.78"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="126.49,-49.96 131.08,-40.42 121.54,-45.01 126.49,-49.96"/>
+</g>
+</g>
+</svg>
+</figure></p>
+<p>그림의 두 경로를 구분한다. question은 프롬프트를 거쳐 응답으로 이동하고, answer는 모델 호출을 건너뛰어 최종 대조 단계로 간다. <code>data/provenance.json</code>은 제공 데이터 ID·분할·행 번호·원본 필드·수업용 ID 생성 규칙을 담는다.</p>
+<h2>실행하고 원본 위치 확인</h2>
+<pre><code class="language-bash">python main.py --session 1
+</code></pre>
+<p>터미널에 결과 HTML 경로가 나온다. 브라우저로 열면 원본 위치와 문제 원문이 표시된다. 상태는 <code>local_only</code>, 공급자와 모델은 <code>none</code>이다. API 호출은 발생하지 않는다. <code>--id gsm8k-main-test-0003</code>을 붙이면 같은 표본 안에서 선택 문제를 바꾼다.</p>
+<p><code>FileNotFoundError</code>가 나면 ZIP의 <code>data/gsm8k_sample.json</code>이 빠지지 않았는지 확인한다. 표본에 없는 ID는 명령행 오류로 종료한다. 결과 화면에 데이터 위치·행 번호·원문이 함께 보이는 부분을 캡처할 수 있다. 다음 차시에는 같은 question을 세 종류의 프롬프트에 넣는다.</p></section><section class="lesson" id="s2"><h1>2차시 · CoT의 원리와 짧은 풀이 프롬프트 작성</h1>
+<h2>설명이 길다고 계산이 정확해지는 것은 아니다</h2>
+<p>CoT는 중간 계산이나 문제 분해의 예시를 프롬프트에 넣어 다단계 문제 해결을 유도하는 접근이다. few-shot CoT에서는 비슷한 문제의 계산 근거와 답을 함께 보여준다. zero-shot 방식에서는 예시 없이 풀이 구조를 요청한다. 오늘은 이 차이를 “정답만”, “핵심 계산과 짧은 검증”, “교사 작성 계산 예시 포함”으로 구현한다.</p>
+<p>모델이 출력한 풀이는 사용자를 위한 설명이다. 설명이 실제 내부 계산을 충실하게 반영한다고 보장할 수 없고, 현대 추론 모델은 별도 지시 없이도 내부 추론을 사용할 수 있다. 그러므로 비공개 사고 전문 대신 계산식·단위·짧은 검증 요약·최종 숫자를 요청하고, 맞는지는 별도로 확인한다. 어떤 모델에서든 CoT가 반드시 더 좋아진다는 결론도 내리지 않는다.</p>
+<table>
+<thead>
+<tr>
+<th>전략 값</th>
+<th>요청할 출력</th>
+<th>비교할 점</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>direct</td>
+<td>마지막 답 한 줄</td>
+<td>간결하지만 틀린 이유를 화면만으로 알기 어려움</td>
+</tr>
+<tr>
+<td>summary</td>
+<td>계산식 1~3개와 검증 요약</td>
+<td>수량 관계를 설명하지만 계산 정확성을 보장하지 않음</td>
+</tr>
+<tr>
+<td>fewshot</td>
+<td>다른 예시의 형식을 참고한 짧은 풀이</td>
+<td>예시가 길이·문체·풀이 구조를 동시에 바꿀 수 있음</td>
+</tr>
+</tbody>
+</table>
+<h2>작성 파일: 프롬프트와 메시지 변환</h2>
+<pre><code class="language-python">def build_prompt(strategy):
+    common = ('수학 문장제에 답하세요. 비공개 내부 사고를 요구하지 않습니다. '
+              '사용자에게 필요한 계산식과 짧은 검증 요약만 보여주세요. '
+              '최종 숫자는 마지막 줄에 #### 숫자 형식으로 쓰세요.')
+    instructions = {
+        'direct': '풀이 없이 마지막 답 한 줄만 쓰세요.',
+        'summary': '문제의 수량과 단위를 확인하고 핵심 계산식 1~3개 및 한국어 검증 요약을 쓰세요.',
+        'fewshot': ('아래 예시처럼 짧은 계산 근거와 답을 쓰세요. 예시는 교사 작성입니다.\n'
+                    '예: 14개 중 4개를 쓰고 나머지를 3원씩 팔았다.\n'
+                    '계산: (14-4)*3=30\n검증: 남은 10개에 개당 가격을 곱했다.\n#### 30'),
+    }
+    if strategy not in instructions:
+        raise ValueError('알 수 없는 프롬프트 전략')
+    return ChatPromptTemplate.from_messages([
+        ('system', common + '\n' + instructions[strategy]), ('user', '{question}')
+    ])
+</code></pre>
+<p>공통 지시문은 system 역할에, 원본 문제는 user 역할의 <code>{question}</code>에 둔다. <code>strategy</code>는 프롬프트를 고르는 Python 값이며 모델이 결정하지 않는다. <code>instructions</code> dict에서 선택한 문자열만 system에 붙인다. few-shot 예시는 교사가 별도로 만든 문제이므로 이번 비교 문제의 정답을 미리 넣지 않는다.</p>
+<p><code>ChatPromptTemplate.from_messages</code>는 아직 모델을 호출하지 않는다. <code>.invoke({"question": ...})</code>도 이 객체에서는 변수 채우기만 한다. 같은 이름의 invoke라도 호출 대상이 프롬프트인지 전체 체인인지에 따라 실행 범위가 다르다.</p>
+<pre><code class="language-python">def to_messages(prompt_value):
+    return [{'role': 'assistant' if m.type == 'ai' else 'user' if m.type == 'human' else m.type,
+             'content': m.content} for m in prompt_value.to_messages()]
+</code></pre>
+<p>템플릿 결과의 메시지는 LangChain 객체다. HTTP API에 보내기 위해 <code>role</code>·<code>content</code> dict의 목록으로 바꾼다. <code>human</code>은 <code>user</code>, <code>ai</code>는 <code>assistant</code>로 바꾸며 <code>system</code>은 그대로 둔다. 반환형은 JSON으로 직렬화 가능한 <code>list[dict]</code>다. 모든 role을 user로 바꾸면 system 지시와 대화 이력을 잃는다.</p>
+<h2>모델 없이 렌더링 결과 비교</h2>
+<pre><code class="language-bash">python main.py --session 2
+</code></pre>
+<p>화면에는 각 전략의 system·user 메시지가 실제 줄바꿈으로 표시된다. 같은 원본 문제가 세 번 나타나고 <code>answer</code>의 정답 설명 전체는 프롬프트에 없다. 교사 예시의 <code>#### 30</code>은 예시 답이며 대상 문제의 정답 필드를 넘긴 것이 아니다. 대상 문제에도 같은 수식을 기계적으로 적용하지 않도록 수량 관계를 읽는다.</p>
+<p>변수명을 <code>{questions}</code>로 바꾸고 입력 dict는 <code>question</code>으로 유지하면 <code>KeyError</code>가 난다. 이는 API 장애가 아니라 템플릿 입력 이름 불일치다. 키를 일치시키면 해결된다. 전략 문구를 바꾼 뒤에는 2차시를 다시 실행해 실제 메시지에서 바뀐 부분을 확인한다.</p>
+<p>다음 차시는 이 메시지를 실제 API 또는 모의 모델에 연결한다. 이때부터 체인 전체의 invoke는 모델 호출까지 진행한다.</p></section><section class="lesson" id="s3"><h1>3차시 · 비용을 고려한 세 공급자 호출과 LCEL 연결</h1>
+<h2>같은 계약으로 보내고 공급자별 형식만 바꾼다</h2>
+<p>전날 LCEL의 <code>|</code>는 앞 단계 결과를 다음 단계 입력으로 넘겼다. 오늘은 <code>ChatPromptTemplate → 메시지 목록 변환 → 채팅 호출</code>로 연결한다. 공급자는 OpenAI·Groq·Gemini 중 하나를 선택하며 세 곳에 동시에 전송하지 않는다. 일반 텍스트 대화만 공통 계약으로 잡고 공급자 고유의 native tool/strict schema를 공통 지원한다고 가정하지 않는다.</p>
+<p>반복은 현재 계정에서 무료 사용이 확인된 Groq 또는 Gemini를 우선한다. OpenAI는 유료 비교·기능 확인에 소수 호출로 선택한다. Gemini도 무료/유료 프로젝트와 모델에 따라 다르다. 화면에 키를 출력하지 않고, 실패한다고 다른 유료 API로 자동 전환하지 않는다.</p>
+<p><figure><svg width="570pt" height="219pt"
+ viewBox="0.00 0.00 569.80 218.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(14.4 204.4)">
+<title>G</title>
+<!-- a -->
+<g id="node1" class="node">
+<title>a</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M478.5,-190C478.5,-190 340.5,-190 340.5,-190 334.5,-190 328.5,-184 328.5,-178 328.5,-178 328.5,-166 328.5,-166 328.5,-160 334.5,-154 340.5,-154 340.5,-154 478.5,-154 478.5,-154 484.5,-154 490.5,-160 490.5,-166 490.5,-166 490.5,-178 490.5,-178 490.5,-184 484.5,-190 478.5,-190"/>
+<text text-anchor="middle" x="409.5" y="-168.9" font-family="Noto Sans CJK KR" font-size="12.00">main.py · &#45;&#45;live / &#45;&#45;mock</text>
+</g>
+<!-- b -->
+<g id="node2" class="node">
+<title>b</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M341,-117C341,-117 208,-117 208,-117 202,-117 196,-111 196,-105 196,-105 196,-89 196,-89 196,-83 202,-77 208,-77 208,-77 341,-77 341,-77 347,-77 353,-83 353,-89 353,-89 353,-105 353,-105 353,-111 347,-117 341,-117"/>
+<text text-anchor="middle" x="274.5" y="-100.4" font-family="Noto Sans CJK KR" font-size="12.00">RemoteChat(provider)</text>
+<text text-anchor="middle" x="274.5" y="-87.4" font-family="Noto Sans CJK KR" font-size="12.00">키 · 모델 · 요청 예산 확인</text>
+</g>
+<!-- a&#45;&gt;b -->
+<g id="edge1" class="edge">
+<title>a&#45;&gt;b</title>
+<path fill="none" stroke="#397e8b" d="M377.85,-153.88C360.22,-144.35 338,-132.34 318.68,-121.89"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="320.21,-118.74 309.75,-117.06 316.88,-124.9 320.21,-118.74"/>
+<text text-anchor="middle" x="363" y="-133" font-family="Noto Sans CJK KR" font-size="10.00">&#45;&#45;live</text>
+</g>
+<!-- f -->
+<g id="node6" class="node">
+<title>f</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M521,-117C521,-117 390,-117 390,-117 384,-117 378,-111 378,-105 378,-105 378,-89 378,-89 378,-83 384,-77 390,-77 390,-77 521,-77 521,-77 527,-77 533,-83 533,-89 533,-89 533,-105 533,-105 533,-111 527,-117 521,-117"/>
+<text text-anchor="middle" x="455.5" y="-100.4" font-family="Noto Sans CJK KR" font-size="12.00">ScriptedChat</text>
+<text text-anchor="middle" x="455.5" y="-87.4" font-family="Noto Sans CJK KR" font-size="12.00">교사 대본 · API 호출 없음</text>
+</g>
+<!-- a&#45;&gt;f -->
+<g id="edge2" class="edge">
+<title>a&#45;&gt;f</title>
+<path fill="none" stroke="#397e8b" d="M420.4,-153.7C425.64,-145.39 432.04,-135.23 437.94,-125.87"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="441.01,-127.56 443.38,-117.23 435.09,-123.83 441.01,-127.56"/>
+<text text-anchor="middle" x="476" y="-133" font-family="Noto Sans CJK KR" font-size="10.00">&#45;&#45;mock 또는 미지정</text>
+</g>
+<!-- c -->
+<g id="node3" class="node">
+<title>c</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M159,-40C159,-40 12,-40 12,-40 6,-40 0,-34 0,-28 0,-28 0,-12 0,-12 0,-6 6,0 12,0 12,0 159,0 159,0 165,0 171,-6 171,-12 171,-12 171,-28 171,-28 171,-34 165,-40 159,-40"/>
+<text text-anchor="middle" x="85.5" y="-23.4" font-family="Noto Sans CJK KR" font-size="12.00">OpenAI Chat Completions</text>
+<text text-anchor="middle" x="85.5" y="-10.4" font-family="Noto Sans CJK KR" font-size="12.00">유료 호출 경로</text>
+</g>
+<!-- b&#45;&gt;c -->
+<g id="edge3" class="edge">
+<title>b&#45;&gt;c</title>
+<path fill="none" stroke="#397e8b" d="M226.32,-76.88C200.99,-66.83 169.77,-54.44 143.17,-43.88"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="144.18,-40.52 133.59,-40.08 141.6,-47.03 144.18,-40.52"/>
+<text text-anchor="middle" x="218" y="-56" font-family="Noto Sans CJK KR" font-size="10.00">openai 선택</text>
+</g>
+<!-- d -->
+<g id="node4" class="node">
+<title>d</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M341,-40C341,-40 208,-40 208,-40 202,-40 196,-34 196,-28 196,-28 196,-12 196,-12 196,-6 202,0 208,0 208,0 341,0 341,0 347,0 353,-6 353,-12 353,-12 353,-28 353,-28 353,-34 347,-40 341,-40"/>
+<text text-anchor="middle" x="274.5" y="-23.4" font-family="Noto Sans CJK KR" font-size="12.00">Groq Chat Completions</text>
+<text text-anchor="middle" x="274.5" y="-10.4" font-family="Noto Sans CJK KR" font-size="12.00">무료 플랜/모델 한도 확인</text>
+</g>
+<!-- b&#45;&gt;d -->
+<g id="edge4" class="edge">
+<title>b&#45;&gt;d</title>
+<path fill="none" stroke="#397e8b" d="M274.5,-76.69C274.5,-68.72 274.5,-59.32 274.5,-50.53"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="278,-50.25 274.5,-40.25 271,-50.25 278,-50.25"/>
+<text text-anchor="middle" x="296" y="-56" font-family="Noto Sans CJK KR" font-size="10.00">groq 선택</text>
+</g>
+<!-- e -->
+<g id="node5" class="node">
+<title>e</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M529,-40C529,-40 390,-40 390,-40 384,-40 378,-34 378,-28 378,-28 378,-12 378,-12 378,-6 384,0 390,0 390,0 529,0 529,0 535,0 541,-6 541,-12 541,-12 541,-28 541,-28 541,-34 535,-40 529,-40"/>
+<text text-anchor="middle" x="459.5" y="-23.4" font-family="Noto Sans CJK KR" font-size="12.00">Gemini generateContent</text>
+<text text-anchor="middle" x="459.5" y="-10.4" font-family="Noto Sans CJK KR" font-size="12.00">무료/유료 프로젝트 확인</text>
+</g>
+<!-- b&#45;&gt;e -->
+<g id="edge5" class="edge">
+<title>b&#45;&gt;e</title>
+<path fill="none" stroke="#397e8b" d="M321.66,-76.88C346.45,-66.83 377.01,-54.44 403.05,-43.88"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="404.47,-47.09 412.42,-40.08 401.84,-40.6 404.47,-47.09"/>
+<text text-anchor="middle" x="404.5" y="-56" font-family="Noto Sans CJK KR" font-size="10.00">gemini 선택</text>
+</g>
+</g>
+</svg>
+</figure></p>
+<h2>app/providers.py: 설정과 요청 본문</h2>
+<p>아래 클래스의 세 부분을 순서대로 읽는다. <code>__init__</code>은 dotenv를 읽고 선택한 공급자의 키·모델을 확인한다. <code>prepare</code>는 URL·헤더·본문을 만들기만 하고 네트워크 요청은 하지 않는다. <code>extract</code>는 응답에서 공개 텍스트와 사용량을 꺼낸다. 마지막 <code>__call__</code>이 실제 HTTP 요청을 실행한다.</p>
+<pre><code class="language-python">class RemoteChat:
+    def __init__(self, provider, max_calls=8, max_tokens=800):
+        load_dotenv(ROOT / '.env', override=False)
+        if provider not in ('openai', 'groq', 'gemini'):
+            raise ValueError('provider는 openai/groq/gemini 중 하나입니다.')
+        self.provider = provider
+        prefix = provider.upper()
+        self.key = os.getenv(prefix + '_API_KEY', '').strip()
+        self.model = os.getenv(prefix + '_MODEL', '').strip()
+        if not self.key or not self.model:
+            raise ValueError(f'{prefix}_API_KEY 와 {prefix}_MODEL 설정이 필요합니다.')
+        if not 1 &lt;= max_calls &lt;= 30 or not 128 &lt;= max_tokens &lt;= 4096:
+            raise ValueError('호출 상한 1~30, 출력 상한 128~4096을 사용하세요.')
+        self.max_calls, self.max_tokens = max_calls, max_tokens
+        self.calls = 0
+        self.metrics = []
+
+    def prepare(self, messages):
+        if self.provider == 'gemini':
+            system = '\n'.join(m['content'] for m in messages if m['role'] == 'system')
+            contents = [{'role': 'model' if m['role'] == 'assistant' else 'user',
+                         'parts': [{'text': m['content']}]} for m in messages if m['role'] != 'system']
+            url = 'https://generativelanguage.googleapis.com/v1beta/models/'
+            url += parse.quote(self.model, safe='') + ':generateContent'
+            return url, {'x-goog-api-key': self.key}, {
+                'systemInstruction': {'parts': [{'text': system}]}, 'contents': contents,
+                'generationConfig': {'maxOutputTokens': self.max_tokens}}
+        base = 'https://api.openai.com/v1' if self.provider == 'openai' else 'https://api.groq.com/openai/v1'
+        return base + '/chat/completions', {'Authorization': 'Bearer ' + self.key}, {
+            'model': self.model, 'messages': messages, 'max_completion_tokens': self.max_tokens}
+
+    def extract(self, data):
+        if self.provider == 'gemini':
+            candidates = data.get('candidates', [])
+            if not candidates or candidates[0].get('finishReason') != 'STOP':
+                raise ValueError('Gemini 응답 거절·잘림·빈 후보')
+            parts = candidates[0].get('content', {}).get('parts', [])
+            text = ''.join(p.get('text', '') for p in parts if not p.get('thought', False))
+            usage = data.get('usageMetadata', {})
+        else:
+            choices = data.get('choices', [])
+            if not choices or choices[0].get('finish_reason') != 'stop':
+                raise ValueError('응답 거절·잘림·빈 후보: 출력 상한/모델 지원을 확인하세요.')
+            text = choices[0]['message'].get('content') or ''
+            usage = data.get('usage', {})
+        if not text.strip():
+            raise ValueError('공개 응답 텍스트가 비어 있습니다.')
+        return text, usage
+
+    def __call__(self, messages):
+        if self.calls &gt;= self.max_calls:
+            raise CallLimit('명령 단위 호출 상한 도달; 자동 공급자 전환 없음')
+        self.calls += 1  # 실패 요청도 호출 예산에 포함한다.
+        url, headers, payload = self.prepare(messages)
+        req = request.Request(url, data=json.dumps(payload).encode('utf-8'),
+                              headers={**headers, 'Content-Type': 'application/json'}, method='POST')
+        started = time.perf_counter()
+        try:
+            with request.urlopen(req, timeout=45) as response:
+                data = json.load(response)
+            text, usage = self.extract(data)
+        except error.HTTPError as exc:
+            # 응답 본문·요청 헤더를 출력하지 않아 키 노출을 피한다.
+            retry = exc.headers.get('Retry-After', '없음')
+            raise RuntimeError(f'HTTP {exc.code}; Retry-After={retry}; 설정/한도 확인 후 수동 재실행') from None
+        except (error.URLError, TimeoutError):
+            raise RuntimeError('연결 실패 또는 45초 타임아웃; 자동 재시도 없음') from None
+        self.metrics.append({'seconds': round(time.perf_counter() - started, 3), 'usage': usage})
+        return text
+</code></pre>
+<p><code>provider.upper()</code>로 <code>groq</code>를 <code>GROQ</code>로 바꿔 <code>GROQ_API_KEY</code>·<code>GROQ_MODEL</code>을 읽는다. 선택하지 않은 공급자의 키는 요구하지 않는다. <code>.env</code>의 <code>override=False</code>는 터미널에 이미 설정한 환경변수를 덮어쓰지 않는다는 뜻이다.</p>
+<p><code>prepare</code>의 OpenAI·Groq 분기는 <code>messages</code>를 그대로 사용한다. <code>max_completion_tokens</code>는 응답 생성 상한이며 모델별 지원을 확인해야 한다. Gemini는 system을 <code>systemInstruction</code>으로 분리하고 assistant role을 <code>model</code>로 바꾼 <code>contents</code>를 만든다. <code>generationConfig.maxOutputTokens</code>로 상한을 전달한다. API 키는 Gemini에서도 URL 쿼리가 아니라 헤더에 넣는다.</p>
+<p><code>json.dumps(payload).encode("utf-8")</code>는 Python dict를 HTTP 본문 바이트로 바꾼다. 서버의 JSON은 <code>json.load(response)</code>로 다시 dict가 된다. 여기서 직렬화된 문자열과 실제 응답 텍스트를 혼동하면 줄바꿈이 <code>\n</code>처럼 남을 수 있다. 결과 패널에는 <code>extract</code>가 꺼낸 문자열을 넣는다.</p>
+<p><code>finish_reason=stop</code> 또는 Gemini의 <code>finishReason=STOP</code>이 아니면 완성 답으로 쓰지 않는다. 길이 제한·거절·빈 응답을 구분해 확인할 수 있게 오류를 남긴다. Gemini의 <code>thought=True</code> 파트는 공개 답으로 취급하지 않는다. 다른 공급자에서도 별도 reasoning 필드를 읽거나 저장하지 않는다.</p>
+<p>호출 수는 요청 직전에 증가하므로 실패도 예산에 포함된다. 기본 최대 8회, 출력 상한 800토큰, 요청 타임아웃 45초다. 자동 재시도는 0회다. 추론 토큰을 포함하는 모델에서는 800토큰이 부족해 공개 답이 잘릴 수 있다. 그때 모델 지원과 비용을 확인하고 <code>--max-tokens 1600</code>처럼 명시적으로 조정한다. 요청 수 상한은 계정의 금액 상한을 대신하지 않는다.</p>
+<h2>main.py: 공통 체인을 실행하기</h2>
+<pre><code class="language-python">def run_strategy(row, strategy, chat, max_turns):
+    before = len(chat.metrics)
+    try:
+        if strategy == 'react':
+            output = run_react(row['question'], chat, max_turns)
+        else:
+            chain = build_prompt(strategy) | RunnableLambda(to_messages) | RunnableLambda(chat)
+            text = chain.invoke({'question': row['question']})
+            output = {'status': 'finished', 'text': text, 'events': []}
+    except (ValueError, RuntimeError, CallLimit) as exc:
+        output = {'status': 'error', 'text': str(exc), 'events': []}
+    return make_result(row, strategy, chat, output, chat.metrics[before:])
+</code></pre>
+<p><code>RunnableLambda(to_messages)</code>는 프롬프트 결과를 HTTP 메시지 dict로 바꾸고, <code>RunnableLambda(chat)</code>은 선택한 채팅 객체를 호출한다. <code>chain.invoke({"question": row["question"]})</code>만 모델 입력으로 넘기므로 원본 answer는 요청에 들어가지 않는다. ReAct는 이 한 번짜리 체인 대신 다음 차시의 반복 함수를 호출한다.</p>
+<p><code>before</code>는 이번 전략 이전의 사용량 항목 수다. 실행 후 <code>chat.metrics[before:]</code>만 가져오므로 한 RemoteChat 객체를 여러 전략에서 재사용해도 각 전략의 실측 사용량을 구분할 수 있다. 네트워크/파싱 오류는 error 결과로 저장하며 성공처럼 정답 비교하지 않는다.</p>
+<h2>실행: 대본과 실제 호출을 구분</h2>
+<pre><code class="language-bash">python main.py --session 3 --strategy direct --mock
+python main.py --session 3 --strategy summary --mock
+python main.py --session 3 --strategy fewshot --mock
+</code></pre>
+<p>모의 결과는 교사 대본이므로 같은 숫자가 나와도 프롬프트 효과를 검증한 것이 아니다. 실제 비교는 같은 공급자·모델을 유지한 채 아래 명령의 strategy만 바꾼다.</p>
+<pre><code class="language-bash">python main.py --session 3 --strategy summary --live --provider groq
+python main.py --session 3 --strategy summary --live --provider gemini
+python main.py --session 3 --strategy summary --live --provider openai
+</code></pre>
+<p>위 세 명령은 <strong>선택지</strong>다. 모두 실행할 필요가 없고 OpenAI 명령은 유료다. 한 명령은 기본 1회 호출한다. <code>HTTP 401/403</code>은 키·권한, <code>400/404</code>는 본문·모델·엔드포인트, <code>429</code>는 사용량/요청 한도부터 확인한다. 다음 차시는 모델 없이 실행되는 계산기를 연결한다.</p></section><section class="lesson" id="s4"><h1>4차시 · ReAct의 Action 규약과 실제 계산기</h1>
+<h2>도구 호출을 글로 쓰는 것과 실행하는 것은 다르다</h2>
+<p>ReAct는 다음 행동을 선택하고 실행 결과를 관찰하며 문제 해결을 이어가는 패턴이다. 계산 결과가 필요한 순간에 프로그램이 도구를 실행해 관찰값을 넣는다. 모델이 “계산 결과는 18이다”라고 쓴 문장은 실제 계산기 실행 증거가 아니다.</p>
+<p>오늘의 간소화한 텍스트 규약은 아래와 같다. <code>Plan</code>은 다음 작업의 짧은 목적이며 비공개 내부 사고 전문이 아니다. native Function Calling API가 아니라 프로그램이 텍스트를 해석하는 교육용 프로토콜이다.</p>
+<pre><code class="language-text">Plan: 남은 달걀을 판매한 금액을 계산한다.
+Action: calculator
+Action Input: (16-3-4)*2
+</code></pre>
+<p>프로그램이 만드는 관찰값은 다음과 같다.</p>
+<pre><code class="language-text">Observation:
+계산식: (16-3-4)*2
+결과: 18
+</code></pre>
+<h2>app/core.py: 허용된 식만 계산하기</h2>
+<p>가장 작은 고정 계산은 <code>(16-3-4)*2</code>다. 그러나 모델이 보내는 문자열을 실행하려면 허용 범위가 필요하다. <code>eval(expression)</code>은 함수 호출 같은 Python 코드까지 실행할 수 있으므로 사용하지 않는다. AST는 문자열을 구문 트리로 읽되 코드를 실행하지 않는다. 그 트리에서 숫자·사칙연산·단항 부호만 직접 처리한다.</p>
+<pre><code class="language-python">def calculate(expression):
+    # eval 없이 숫자와 + - * / 괄호만 계산한다.
+    if not isinstance(expression, str) or len(expression) &gt; 120:
+        raise ValueError('계산식은 120자 이하 문자열이어야 합니다.')
+    tree = ast.parse(expression.strip(), mode='eval')
+    if len(list(ast.walk(tree))) &gt; 48:
+        raise ValueError('계산식이 너무 복잡합니다.')
+
+    def visit(node):
+        if isinstance(node, ast.Constant) and type(node.value) in (int, float):
+            value = Decimal(str(node.value))
+        elif isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+            value = visit(node.operand) * (-1 if isinstance(node.op, ast.USub) else 1)
+        elif isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Sub, ast.Mult, ast.Div)):
+            a, b = visit(node.left), visit(node.right)
+            if isinstance(node.op, ast.Add): value = a + b
+            elif isinstance(node.op, ast.Sub): value = a - b
+            elif isinstance(node.op, ast.Mult): value = a * b
+            else: value = a / b
+        else:
+            raise ValueError('숫자·사칙연산·괄호만 허용합니다.')
+        if not value.is_finite() or abs(value) &gt; Decimal('1e12'):
+            raise ValueError('계산 범위를 벗어났습니다.')
+        return value
+
+    return format(visit(tree.body), 'f')
+</code></pre>
+<p><code>ast.parse(..., mode="eval")</code>의 eval은 파싱 모드 이름이며 Python 내장 <code>eval()</code>을 호출하는 것이 아니다. <code>tree.body</code>부터 <code>visit</code>가 내려가며 값들을 계산한다. <code>(16-3-4)*2</code>의 맨 위는 곱셈이고 왼쪽은 뺄셈 트리다. 왼쪽이 9, 오른쪽이 2가 되면 마지막 곱셈이 18을 만든다.</p>
+<table>
+<thead>
+<tr>
+<th>검사/분기</th>
+<th>처리 의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>최대 120자·AST 노드 48개</td>
+<td>지나치게 큰 입력을 계산 전에 제한</td>
+</tr>
+<tr>
+<td>Constant + int/float</td>
+<td>숫자를 Decimal로 바꿈. bool은 제외</td>
+</tr>
+<tr>
+<td>UnaryOp</td>
+<td><code>-3</code>, <code>+2</code> 같은 부호 처리</td>
+</tr>
+<tr>
+<td>BinOp + Add/Sub/Mult/Div</td>
+<td>두 자식 값을 먼저 계산한 후 사칙연산</td>
+</tr>
+<tr>
+<td>그 밖의 노드</td>
+<td>함수 호출·변수·거듭제곱 등 거부</td>
+</tr>
+<tr>
+<td>중간 결과 절댓값 1e12 초과</td>
+<td>과도한 숫자를 제한</td>
+</tr>
+</tbody>
+</table>
+<p><code>Decimal(str(node.value))</code>로 0.1 같은 표본의 소수를 처리한다. 모든 실수 표현을 완전한 기호수학으로 계산하는 도구는 아니다. 반환은 JSON/메시지에 넣기 쉬운 숫자 문자열이다. 0으로 나누면 <code>ArithmeticError</code> 계열 예외가 난다. 여기서 오류가 났다고 0을 계산값으로 반환하지 않는다.</p>
+<h2>행동 형식도 검사하기</h2>
+<pre><code class="language-python">def parse_action(text):
+    # 모델이 Observation을 작성하면 실제 도구 결과로 오인하지 않도록 거부한다.
+    if re.search(r'^Observation\s*:', text, re.M):
+        raise ValueError('Observation은 프로그램만 작성합니다.')
+    if re.search(r'^####', text, re.M) and re.search(r'^Action(?: Input)?\s*:', text, re.M):
+        raise ValueError('행동과 최종 답을 동시에 내면 안 됩니다.')
+    if parse_final(text) is not None:
+        return None
+    names = re.findall(r'^Action:\s*([^\n]+)$', text, re.M)
+    inputs = re.findall(r'^Action Input:\s*([^\n]+)$', text, re.M)
+    if len(names) != 1 or len(inputs) != 1 or names[0].strip() != 'calculator':
+        raise ValueError('Action: calculator 와 Action Input: 계산식 한 쌍이 필요합니다.')
+    return inputs[0].strip()
+</code></pre>
+<p>정규식의 <code>^</code>는 줄 시작이고 <code>re.M</code>은 여러 줄 각각의 시작을 검사한다. <code>findall</code> 결과가 한 쌍인지 검사하므로 Action을 두 개 써서 모호해진 응답을 실행하지 않는다. 허용 도구는 calculator 하나다. 모델이 직접 Observation을 쓴 경우도 거부하여 가짜 관찰이 실제 실행값처럼 보이지 않게 한다.</p>
+<p><code>None</code>은 “파싱 실패”가 아니라 <strong>정상적인 최종 답</strong>을 뜻한다. 이 반환 계약은 5차시 반복문에서 종료 분기로 사용된다. 파싱 실패는 <code>ValueError</code>로 구별한다.</p>
+<h2>API 없이 도구 실행</h2>
+<pre><code class="language-bash">python main.py --session 4
+</code></pre>
+<p>예상 결과는 실제 로컬 계산 <code>18</code>이다. 원본 0행의 question과 함께 보이지만 이 차시는 식을 고정하여 도구 자체를 이해하는 단계다. 다른 문제를 자동 해석해 식을 선택하는 것은 5차시 모델의 역할이다. 화면의 mode는 local_only이며 모델 호출은 없다.</p></section><section class="lesson" id="s5"><h1>5차시 · 행동·관찰·최종 답을 잇는 ReAct 반복문</h1>
+<h2>대화 이력에 무엇을 추가하는가</h2>
+<p>한 번짜리 프롬프트는 응답을 받으면 끝나지만 ReAct는 모델 응답을 읽고 실행이 필요한지 결정한다. 계산이 필요하면 로컬 계산 결과를 대화에 추가해 모델을 다시 호출한다. 프로그램이 도구를 실행하는 책임과 모델이 다음 행동을 제안하는 책임을 나눈다.</p>
+<p><figure><svg width="648pt" height="320pt"
+ viewBox="0.00 0.00 648.30 319.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(14.4 305.4)">
+<title>G</title>
+<!-- a -->
+<g id="node1" class="node">
+<title>a</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M399,-291C399,-291 282,-291 282,-291 276,-291 270,-285 270,-279 270,-279 270,-263 270,-263 270,-257 276,-251 282,-251 282,-251 399,-251 399,-251 405,-251 411,-257 411,-263 411,-263 411,-279 411,-279 411,-285 405,-291 399,-291"/>
+<text text-anchor="middle" x="340.5" y="-274.4" font-family="Noto Sans CJK KR" font-size="12.00">core.py · run_react()</text>
+<text text-anchor="middle" x="340.5" y="-261.4" font-family="Noto Sans CJK KR" font-size="12.00">문제 + messages</text>
+</g>
+<!-- b -->
+<g id="node2" class="node">
+<title>b</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M413,-224C413,-224 268,-224 268,-224 262,-224 256,-218 256,-212 256,-212 256,-196 256,-196 256,-190 262,-184 268,-184 268,-184 413,-184 413,-184 419,-184 425,-190 425,-196 425,-196 425,-212 425,-212 425,-218 419,-224 413,-224"/>
+<text text-anchor="middle" x="340.5" y="-207.4" font-family="Noto Sans CJK KR" font-size="12.00">chat(messages)</text>
+<text text-anchor="middle" x="340.5" y="-194.4" font-family="Noto Sans CJK KR" font-size="12.00">공개 Plan / Action / 최종 답</text>
+</g>
+<!-- a&#45;&gt;b -->
+<g id="edge1" class="edge">
+<title>a&#45;&gt;b</title>
+<path fill="none" stroke="#397e8b" d="M340.5,-250.85C340.5,-245.74 340.5,-240.09 340.5,-234.56"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="344,-234.24 340.5,-224.24 337,-234.24 344,-234.24"/>
+</g>
+<!-- c -->
+<g id="node3" class="node">
+<title>c</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M328.86,-154.07C328.86,-154.07 193.14,-119.93 193.14,-119.93 187.32,-118.46 187.32,-115.54 193.14,-114.07 193.14,-114.07 328.86,-79.93 328.86,-79.93 334.68,-78.46 346.32,-78.46 352.14,-79.93 352.14,-79.93 487.86,-114.07 487.86,-114.07 493.68,-115.54 493.68,-118.46 487.86,-119.93 487.86,-119.93 352.14,-154.07 352.14,-154.07 346.32,-155.54 334.68,-155.54 328.86,-154.07"/>
+<text text-anchor="middle" x="340.5" y="-120.4" font-family="Noto Sans CJK KR" font-size="12.00">core.py · parse_action()</text>
+<text text-anchor="middle" x="340.5" y="-107.4" font-family="Noto Sans CJK KR" font-size="12.00">형식과 허용 도구 검증</text>
+</g>
+<!-- b&#45;&gt;c -->
+<g id="edge2" class="edge">
+<title>b&#45;&gt;c</title>
+<path fill="none" stroke="#397e8b" d="M340.5,-183.71C340.5,-178.75 340.5,-173.19 340.5,-167.44"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="344,-167.02 340.5,-157.02 337,-167.02 344,-167.02"/>
+</g>
+<!-- e -->
+<g id="node5" class="node">
+<title>e</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M562.5,-40C562.5,-40 408.5,-40 408.5,-40 402.5,-40 396.5,-34 396.5,-28 396.5,-28 396.5,-12 396.5,-12 396.5,-6 402.5,0 408.5,0 408.5,0 562.5,0 562.5,0 568.5,0 574.5,-6 574.5,-12 574.5,-12 574.5,-28 574.5,-28 574.5,-34 568.5,-40 562.5,-40"/>
+<text text-anchor="middle" x="485.5" y="-23.4" font-family="Noto Sans CJK KR" font-size="12.00">finished / error / max_turns</text>
+<text text-anchor="middle" x="485.5" y="-10.4" font-family="Noto Sans CJK KR" font-size="12.00">events와 결과 반환</text>
+</g>
+<!-- b&#45;&gt;e -->
+<g id="edge6" class="edge">
+<title>b&#45;&gt;e</title>
+<path fill="none" stroke="#397e8b" d="M425.44,-190.05C462.64,-182.48 500.37,-171.52 511.5,-157 535.39,-125.84 518.21,-79.08 502.65,-49.31"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="505.58,-47.38 497.7,-40.29 499.44,-50.74 505.58,-47.38"/>
+<text text-anchor="middle" x="571" y="-114.5" font-family="Noto Sans CJK KR" font-size="10.00">API 오류 또는 반복 상한</text>
+</g>
+<!-- d -->
+<g id="node4" class="node">
+<title>d</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M173,-40C173,-40 12,-40 12,-40 6,-40 0,-34 0,-28 0,-28 0,-12 0,-12 0,-6 6,0 12,0 12,0 173,0 173,0 179,0 185,-6 185,-12 185,-12 185,-28 185,-28 185,-34 179,-40 173,-40"/>
+<text text-anchor="middle" x="92.5" y="-23.4" font-family="Noto Sans CJK KR" font-size="12.00">core.py · calculate()</text>
+<text text-anchor="middle" x="92.5" y="-10.4" font-family="Noto Sans CJK KR" font-size="12.00">실제 로컬 계산 → Observation</text>
+</g>
+<!-- c&#45;&gt;d -->
+<g id="edge3" class="edge">
+<title>c&#45;&gt;d</title>
+<path fill="none" stroke="#397e8b" d="M278.88,-92.39C240,-77.5 190.05,-58.37 151.65,-43.66"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="152.74,-40.33 142.15,-40.02 150.24,-46.87 152.74,-40.33"/>
+<text text-anchor="middle" x="222" y="-56" font-family="Noto Sans CJK KR" font-size="10.00">계산 요청</text>
+</g>
+<!-- c&#45;&gt;e -->
+<g id="edge5" class="edge">
+<title>c&#45;&gt;e</title>
+<path fill="none" stroke="#397e8b" d="M383.61,-87.75C403.97,-74.41 428.06,-58.63 447.7,-45.77"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="449.65,-48.67 456.1,-40.26 445.81,-42.82 449.65,-48.67"/>
+<text text-anchor="middle" x="449.5" y="-56" font-family="Noto Sans CJK KR" font-size="10.00">최종 답</text>
+</g>
+<!-- d&#45;&gt;b -->
+<g id="edge4" class="edge">
+<title>d&#45;&gt;b</title>
+<path fill="none" stroke="#397e8b" d="M56.16,-40.21C42.69,-49.39 28.9,-61.74 21.5,-77 5.99,-108.99 -1.78,-130.12 21.5,-157 50.1,-190.02 162.5,-199.87 245.83,-202.54"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="245.74,-206.03 255.84,-202.83 245.94,-199.04 245.74,-206.03"/>
+<text text-anchor="middle" x="95" y="-114.5" font-family="Noto Sans CJK KR" font-size="10.00">Observation을 user 메시지로 추가</text>
+</g>
+</g>
+</svg>
+</figure></p>
+<p><code>run_react</code> 안의 핵심 상태는 <code>messages</code>와 <code>events</code> 두 목록이다. messages는 다음 모델 호출에 보낼 대화 이력이고 events는 화면에서 확인할 실행 기록이다. 도구 실행이 끝날 때 model 이벤트와 tool 이벤트가 별도로 남는다. API가 실패해도 이전에 실행한 도구 기록을 지우지 않는다.</p>
+<h2>app/core.py: 직접 보이는 반복문</h2>
+<pre><code class="language-python">def run_react(question, chat, max_turns=3):
+    if not 1 &lt;= max_turns &lt;= 5:
+        raise ValueError('max_turns는 1~5입니다.')
+    messages = [{'role': 'system', 'content': REACT_SYSTEM}, {'role': 'user', 'content': question}]
+    events = []
+    for turn in range(1, max_turns + 1):
+        try:
+            text = chat(messages)
+        except (RuntimeError, ValueError) as exc:
+            return {'status': 'error', 'text': str(exc), 'events': events}
+        events.append({'kind': 'model', 'turn': turn, 'text': text})
+        messages.append({'role': 'assistant', 'content': text})
+        try:
+            expression = parse_action(text)
+            if expression is None:
+                return {'status': 'finished', 'text': text, 'events': events}
+            value = calculate(expression)
+            observation = f'계산식: {expression}\n결과: {value}'
+            events.append({'kind': 'tool', 'turn': turn, 'text': observation})
+        except (ValueError, SyntaxError, ArithmeticError) as exc:
+            observation = f'도구/형식 오류: {exc}'
+            events.append({'kind': 'tool_error', 'turn': turn, 'text': observation})
+        messages.append({'role': 'user', 'content': 'Observation:\n' + observation})
+    return {'status': 'max_turns', 'text': '반복 상한으로 중단: 최종 답 미완료', 'events': events}
+</code></pre>
+<p>처음에는 system 규약과 원본 question 두 개만 있다. <code>chat(messages)</code>로 받은 응답은 assistant 메시지로 추가한다. <code>parse_action(text)</code>의 반환이 None이면 최종 답이므로 <code>finished</code>로 종료한다. 계산식 문자열이면 calculate를 실제 호출한다.</p>
+<p>관찰값은 <code>role="user"</code>의 <code>Observation:</code> 메시지로 넣는다. 오늘은 일반 텍스트 프로토콜이므로 native ToolMessage/tool_call_id를 사용하지 않는다. 이 차이를 무시하고 native 도구 API가 실행됐다고 설명하면 안 된다. 다음 호출은 이전 assistant의 Action과 프로그램의 Observation을 함께 본다.</p>
+<table>
+<thead>
+<tr>
+<th>시점</th>
+<th>messages의 내용 변화</th>
+<th>events의 변화</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>시작</td>
+<td>system 규약, user 문제</td>
+<td>비어 있음</td>
+</tr>
+<tr>
+<td>첫 응답</td>
+<td>assistant Action 추가</td>
+<td>model 1회</td>
+</tr>
+<tr>
+<td>실제 계산 후</td>
+<td>user Observation 추가</td>
+<td>tool 1회</td>
+</tr>
+<tr>
+<td>두 번째 응답</td>
+<td>assistant 최종 답 추가</td>
+<td>model 2회</td>
+</tr>
+<tr>
+<td>종료</td>
+<td>더 호출하지 않음</td>
+<td>status=finished</td>
+</tr>
+</tbody>
+</table>
+<p><code>max_turns=3</code>은 모델 응답 횟수 상한이다. 마지막 허용 회차에서 도구를 실행했더라도 최종 답을 받지 못하면 <code>max_turns</code>다. 18이라는 도구 값이 있다고 이를 모델의 완성 답으로 꾸미지 않는다. 모델이 도구 없이 바로 최종 답을 내면 허용하되 tool 이벤트가 없다는 사실이 기록된다. ReAct 프롬프트가 항상 실제 도구 사용을 보장하는 것은 아니다.</p>
+<h2>모의 모델은 어떻게 움직이는가</h2>
+<pre><code class="language-python">class ScriptedChat:
+    def __init__(self, record_id):
+        self.expression, self.summary = FIXTURES[record_id]
+        self.model, self.provider = 'teacher-script-v1', 'mock'
+        self.calls, self.metrics = 0, []
+
+    def __call__(self, messages):
+        self.calls += 1
+        system = messages[0]['content']
+        value = calculate(self.expression)
+        if 'Action: calculator' in system and not messages[-1]['content'].startswith('Observation:'):
+            return f'Plan: 필요한 수량과 가격을 계산한다.\nAction: calculator\nAction Input: {self.expression}'
+        if '풀이 없이' in system:
+            return f'#### {value}'
+        return f'계산: {self.expression} = {value}\n검증: {self.summary}\n#### {value}'
+</code></pre>
+<p>생성자는 <code>FIXTURES</code>에서 문제별 교사 작성 계산식과 요약을 받는다. 예를 들어 0번은 <code>(16-3-4)*2</code>다. 정답 <code>answer</code>를 읽어 모델 입력으로 넘기는 방식이 아니다. Action 이후 Observation 메시지가 오면 최종 답 형식으로 응답하는 대본이다. 이 대본 역시 calculate를 사용하므로 모든 정답 일치는 대본·프로그램 검증이며 모델 성능이 아니다.</p>
+<pre><code class="language-bash">python main.py --session 5 --mock
+python main.py --session 5 --live --provider groq
+</code></pre>
+<p>두 번째 명령은 실제 호출 선택지다. 기본 흐름은 Action 1회 + Final 1회로 2번 호출하지만, 모델 응답에 따라 1~3회가 된다. 결과 HTML에서 <code>model → tool → model</code> 순서와 <code>tool</code>의 계산식·결과를 확인한다. 오류가 나면 tool_error가 기록되고 남은 회차 안에서 형식을 바로잡을 수 있다.</p>
+<h2>한 입력을 끝까지 추적하기</h2>
+<p>0행 question → 모델의 Action Input <code>(16-3-4)*2</code> → parse_action의 문자열 반환 → calculate의 <code>"18"</code> 반환 → Observation에 <code>결과: 18</code> 추가 → 다음 공개 응답 <code>#### 18</code> → 원본 answer의 최종 숫자 18과 대조한다. 중간 식은 모델의 선택이며 원본 정답에서 식을 읽어 자동 주입한 결과가 아니다.</p></section><section class="lesson" id="s6"><h1>6차시 · 동일 문제에서 기본·풀이·ReAct 결과 비교</h1>
+<h2>프롬프트 효과와 모델 차이를 분리한다</h2>
+<p>기본 응답과 짧은 풀이를 비교하려면 question·공급자·모델·표본 순서를 유지해야 한다. 공급자를 바꾸면 프롬프트뿐 아니라 모델·서비스 설정도 바뀐다. 이는 “구성 비교”이며 공급자만의 효과라고 해석할 수 없다. 오늘 필수 비교는 같은 공급자에서 direct·summary·react 세 방식이다. fewshot은 3차시에서 별도 선택 비교한다.</p>
+<p>ReAct는 추가 호출과 계산 도구를 사용하므로 조건이 완전히 같은 단일 호출 실험은 아니다. 더 많은 자원을 써서 얻은 결과라는 차이도 함께 기록한다. 정답 여부만 보지 말고 호출 수·공개 응답·도구 실행·오류 상태를 함께 읽는다.</p>
+<p><figure><svg width="239pt" height="329pt"
+ viewBox="0.00 0.00 238.80 328.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(14.4 314.4)">
+<title>G</title>
+<!-- a -->
+<g id="node1" class="node">
+<title>a</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M173.5,-300C173.5,-300 36.5,-300 36.5,-300 30.5,-300 24.5,-294 24.5,-288 24.5,-288 24.5,-272 24.5,-272 24.5,-266 30.5,-260 36.5,-260 36.5,-260 173.5,-260 173.5,-260 179.5,-260 185.5,-266 185.5,-272 185.5,-272 185.5,-288 185.5,-288 185.5,-294 179.5,-300 173.5,-300"/>
+<text text-anchor="middle" x="105" y="-283.4" font-family="Noto Sans CJK KR" font-size="12.00">main.py · run_strategy()</text>
+<text text-anchor="middle" x="105" y="-270.4" font-family="Noto Sans CJK KR" font-size="12.00">입력 dict: question</text>
+</g>
+<!-- b -->
+<g id="node2" class="node">
+<title>b</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M198,-235C198,-235 12,-235 12,-235 6,-235 0,-229 0,-223 0,-223 0,-207 0,-207 0,-201 6,-195 12,-195 12,-195 198,-195 198,-195 204,-195 210,-201 210,-207 210,-207 210,-223 210,-223 210,-229 204,-235 198,-235"/>
+<text text-anchor="middle" x="105" y="-218.4" font-family="Noto Sans CJK KR" font-size="12.00">core.py · build_prompt(strategy)</text>
+<text text-anchor="middle" x="105" y="-205.4" font-family="Noto Sans CJK KR" font-size="12.00">ChatPromptTemplate</text>
+</g>
+<!-- a&#45;&gt;b -->
+<g id="edge1" class="edge">
+<title>a&#45;&gt;b</title>
+<path fill="none" stroke="#397e8b" d="M105,-259.76C105,-255.24 105,-250.32 105,-245.47"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="108.5,-245.13 105,-235.13 101.5,-245.13 108.5,-245.13"/>
+</g>
+<!-- c -->
+<g id="node3" class="node">
+<title>c</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M172.5,-170C172.5,-170 37.5,-170 37.5,-170 31.5,-170 25.5,-164 25.5,-158 25.5,-158 25.5,-142 25.5,-142 25.5,-136 31.5,-130 37.5,-130 37.5,-130 172.5,-130 172.5,-130 178.5,-130 184.5,-136 184.5,-142 184.5,-142 184.5,-158 184.5,-158 184.5,-164 178.5,-170 172.5,-170"/>
+<text text-anchor="middle" x="105" y="-153.4" font-family="Noto Sans CJK KR" font-size="12.00">core.py · to_messages()</text>
+<text text-anchor="middle" x="105" y="-140.4" font-family="Noto Sans CJK KR" font-size="12.00">role/content 목록</text>
+</g>
+<!-- b&#45;&gt;c -->
+<g id="edge2" class="edge">
+<title>b&#45;&gt;c</title>
+<path fill="none" stroke="#397e8b" d="M105,-194.76C105,-190.24 105,-185.32 105,-180.47"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="108.5,-180.13 105,-170.13 101.5,-180.13 108.5,-180.13"/>
+</g>
+<!-- d -->
+<g id="node4" class="node">
+<title>d</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M191,-105C191,-105 19,-105 19,-105 13,-105 7,-99 7,-93 7,-93 7,-77 7,-77 7,-71 13,-65 19,-65 19,-65 191,-65 191,-65 197,-65 203,-71 203,-77 203,-77 203,-93 203,-93 203,-99 197,-105 191,-105"/>
+<text text-anchor="middle" x="105" y="-88.4" font-family="Noto Sans CJK KR" font-size="12.00">providers.py</text>
+<text text-anchor="middle" x="105" y="-75.4" font-family="Noto Sans CJK KR" font-size="12.00">RemoteChat 또는 ScriptedChat</text>
+</g>
+<!-- c&#45;&gt;d -->
+<g id="edge3" class="edge">
+<title>c&#45;&gt;d</title>
+<path fill="none" stroke="#397e8b" d="M105,-129.76C105,-125.24 105,-120.32 105,-115.47"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="108.5,-115.13 105,-105.13 101.5,-115.13 108.5,-115.13"/>
+</g>
+<!-- e -->
+<g id="node5" class="node">
+<title>e</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M173,-40C173,-40 37,-40 37,-40 31,-40 25,-34 25,-28 25,-28 25,-12 25,-12 25,-6 31,0 37,0 37,0 173,0 173,0 179,0 185,-6 185,-12 185,-12 185,-28 185,-28 185,-34 179,-40 173,-40"/>
+<text text-anchor="middle" x="105" y="-23.4" font-family="Noto Sans CJK KR" font-size="12.00">main.py · make_result()</text>
+<text text-anchor="middle" x="105" y="-10.4" font-family="Noto Sans CJK KR" font-size="12.00">최종 숫자 · 실행 상태</text>
+</g>
+<!-- d&#45;&gt;e -->
+<g id="edge4" class="edge">
+<title>d&#45;&gt;e</title>
+<path fill="none" stroke="#397e8b" d="M105,-64.76C105,-60.24 105,-55.32 105,-50.47"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="108.5,-50.13 105,-40.13 101.5,-50.13 108.5,-50.13"/>
+</g>
+</g>
+</svg>
+</figure></p>
+<h2>최종 숫자를 정규화하기</h2>
+<pre><code class="language-python">def parse_final(text):
+    # 마지막 줄의 #### 숫자만 허용: 단위·백분율은 수업 범위 밖이다.
+    match = re.search(r'(?:^|\n)####\s+(-?\d[\d,]*(?:\.\d+)?)\s*$', text.strip())
+    if not match:
+        return None
+    try:
+        value = Decimal(match.group(1).replace(',', ''))
+        return value if value.is_finite() else None
+    except InvalidOperation:
+        return None
+</code></pre>
+<p>문장에서 마지막 숫자만 무조건 가져오면 설명의 수량이나 날짜를 답으로 착각할 수 있다. 그래서 마지막 줄의 <code>#### 숫자</code>를 계약으로 정한다. 쉼표는 제거해 <code>70,000</code>과 <code>70000</code>을 같은 Decimal 값으로 비교한다. <code>#### 18원</code>은 이 코드에서 형식 실패이며 틀린 숫자 0으로 바뀌지 않는다. 숫자가 없는 응답과 수학 오답을 구별하려는 설계다.</p>
+<p>원본 answer는 풀이와 최종 숫자가 함께 있는 문자열이다. 제공 표본은 literal <code>\n</code>을 사용하므로 사후 대조용 원본 answer에만 이를 실제 개행으로 복원한다. question이나 일반 응답 전체에 무차별 replace를 적용하지 않는다.</p>
+<h2>main.py: 예측과 원본 정답 대조</h2>
+<pre><code class="language-python">def make_result(row, strategy, chat, output, metrics=None):
+    predicted = parse_final(output['text'])
+    expected = parse_final(row['answer'].replace('\\n', '\n'))
+    finished = output['status'] == 'finished'
+    return {'record': row, 'strategy': strategy, 'mode': 'mock' if chat.provider == 'mock' else 'live',
+            'provider': chat.provider, 'model': chat.model, **output,
+            'predicted': str(predicted) if predicted is not None else None,
+            'expected': str(expected) if expected is not None else None,
+            'correct': bool(predicted == expected) if finished and predicted is not None and expected is not None else None,
+            'metrics': metrics or []}
+</code></pre>
+<p><code>predicted</code>는 모델의 공개 응답, <code>expected</code>는 원본 answer에서 추출한다. <code>status=finished</code>이며 두 값이 모두 있을 때만 bool로 일치 여부를 기록한다. 파싱 실패·API 오류·반복 중단은 <code>correct=None</code>이다. 이는 오류를 오답 숫자로 위장하지 않으면서 비교에서 미완료를 분리한다.</p>
+<p>결과 객체에는 row가 들어가지만 이는 호출이 끝난 뒤 저장을 위한 것이다. 앞 단계 <code>chain.invoke</code>와 <code>run_react</code>에는 question만 들어갔다. 입력에 answer가 섞이지 않는 경계를 코드에서 다시 확인한다.</p>
+<h2>한 문제에서 시작한 후 표본을 늘리기</h2>
+<pre><code class="language-bash">python main.py --session 6 --count 1 --mock
+python main.py --session 6 --count 3 --mock
+python main.py --session 6 --count 1 --live --provider groq
+</code></pre>
+<p>첫 두 명령은 구조 연습이다. 실제 호출은 마지막 명령이다. <code>--count 1</code>은 0행, <code>--count 3</code>은 0·1·2행을 의미한다. 6차시는 <code>--id</code>보다 count에 따른 앞쪽 표본 선택을 사용한다. 다른 행 하나만 실행하려면 3·5차시에서 <code>--id</code>를 쓴다.</p>
+<table>
+<thead>
+<tr>
+<th>설정</th>
+<th>실제 API 요청 상한 계산</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1문제 · max-turns=3</td>
+<td>direct 1 + summary 1 + react 최대 3 = 최대 5회</td>
+</tr>
+<tr>
+<td>3문제 · max-turns=3</td>
+<td>최대 15회, 기본 max-calls=8이면 그 전에 종료 가능</td>
+</tr>
+<tr>
+<td>호출 예산을 명시적으로 확대</td>
+<td><code>--max-calls 15</code>를 추가. 선택한 계정 한도와 비용 확인 필요</td>
+</tr>
+</tbody>
+</table>
+<p>기본 max-calls는 명령 실행 전체에서 공유하는 8회다. 비용을 줄이기 위해 실제 비교는 1문제부터 시작한다. 여러 문제를 원격 실행하는 경우 요청 한도에 걸리면 오류 결과를 저장하고 중단한다. 재실행은 추가 호출이다.</p>
+<p>HTML 상단에 비교 항목 수·숫자 파싱 수·정답 일치 수가 나온다. 미완료까지 포함한 전체 항목 수를 유지하고, 성공한 응답만 골라 정답률이 높아 보이게 만들지 않는다. 소수의 쉬운 문제나 모의 대본 결과를 “GSM8K 정확도” 또는 교육 효과라고 표현하지 않는다. 실제 결과가 나와야 모델별 수치를 작성할 수 있다.</p></section><section class="lesson" id="s7"><h1>7차시 · 실패를 관찰하고 반복을 멈추기</h1>
+<h2>예외는 다음 동작을 결정하는 정보다</h2>
+<p>ReAct에서는 계산식이 틀리거나, 허용하지 않은 도구를 요청하거나, 최종 답 없이 같은 작업을 반복할 수 있다. 이러한 상황을 같은 실패 문자열로 숨기면 어느 부분을 고쳐야 하는지 알기 어렵다. 오늘은 합성 실패 입력으로 형식 검사·계산·반복 상한을 구분한다. 실제 외부 시스템을 변경하지 않는다.</p>
+<table>
+<thead>
+<tr>
+<th>관찰된 증상</th>
+<th>원인 위치</th>
+<th>이 코드의 처리</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Action: web</td>
+<td>parse_action</td>
+<td>허용 도구가 아니므로 tool_error</td>
+</tr>
+<tr>
+<td>Observation: 999를 모델이 작성</td>
+<td>parse_action</td>
+<td>가짜 관찰로 거부</td>
+</tr>
+<tr>
+<td>1/0</td>
+<td>calculate</td>
+<td>계산 예외를 Observation 오류로 전달</td>
+</tr>
+<tr>
+<td>2**1000</td>
+<td>calculate</td>
+<td>거듭제곱 AST 거부</td>
+</tr>
+<tr>
+<td>정답 없이 계산만 반복</td>
+<td>run_react</td>
+<td>max_turns 후 중단</td>
+</tr>
+<tr>
+<td>429</td>
+<td>RemoteChat.<strong>call</strong></td>
+<td>한도 오류 표시, 자동 재시도/유료 전환 없음</td>
+</tr>
+<tr>
+<td>공개 답 없이 출력 상한 도달</td>
+<td>RemoteChat.extract</td>
+<td>완료 응답으로 쓰지 않음</td>
+</tr>
+</tbody>
+</table>
+<h2>main.py의 실패 재현 함수</h2>
+<pre><code class="language-python">def failure_demo():
+    results = []
+    for expression in ('(16-3-4)*2', '1/0', '__import__(&quot;os&quot;)', '2**1000'):
+        try: value = calculate(expression)
+        except (ValueError, SyntaxError, ArithmeticError) as exc: value = type(exc).__name__
+        results.append(f'{expression} → {value}')
+    for text in ('Action: web\nAction Input: 2+2', 'Observation: 999', '#### 18'):
+        try: value = parse_action(text)
+        except ValueError as exc: value = str(exc)
+        results.append(f'{text}\n판정: {value}')
+    repeated = lambda messages: 'Plan: 다시 계산한다.\nAction: calculator\nAction Input: 2+2'
+    outcome = run_react('반복 상한 재현', repeated, max_turns=2)
+    results.append('반복 도구 호출 중단 상태: ' + outcome['status'])
+    return '\n\n'.join(results)
+</code></pre>
+<p>처음 for문은 같은 calculate 함수에 정상·실패 식을 보낸다. 예외를 잡은 뒤 예외 클래스 이름을 보여주므로 계산기 입력 문제를 API 문제로 착각하지 않는다. 두 번째 for문은 행동 파서를 검사한다. 마지막 lambda는 언제나 같은 Action을 내보내는 합성 모델이다. 2회만 허용하면 계산을 두 번 실행한 후 <code>max_turns</code>로 종료한다.</p>
+<p><code>__import__("os")</code>라는 입력은 AST 단계에서 거부된다. Python 함수 호출이 실제 실행된 것이 아니다. 문자열을 보여주는 실습과 실행하는 실습을 구분한다. 정답이 없는데 상한에 닿았다면 모델이 틀린지·규약을 따르지 못했는지·예산이 부족했는지 기록을 보고 해석한다.</p>
+<pre><code class="language-bash">python main.py --session 7
+python -m unittest discover -s tests -v
+</code></pre>
+<p>첫 명령은 원격 호출 0회이며 정상 계산 18, 허용하지 않은 노드 오류, 가짜 관찰 거부, 반복 상한 종료가 출력된다. 두 번째는 소프트웨어 검증이다. 학생 시험이나 채점표가 아니다. 테스트는 실제 함수의 결과·API 요청 변환·실패 복구·정보 경계를 검사한다.</p>
+<h2>호출 예산과 재시도 정책</h2>
+<p>RemoteChat은 상한을 확인한 뒤 요청 횟수를 증가시킨다. 429에서 무한 재시도하면 같은 원인을 반복하고 수업 시간을 낭비할 수 있다. 이 교안은 자동 재시도 0회로 두고 Retry-After 안내를 보고 수동으로 재실행한다. 무료 한도가 찼을 때는 호출을 줄이거나 명시적으로 모의 실행을 선택한다. 다른 공급자로 바꾸면 데이터 전송 대상·모델·요금이 바뀌므로 <code>--provider</code>를 직접 선택한다.</p>
+<p>실제 외부 API는 계정·모델·엔드포인트가 있어야 검증할 수 있다. 로컬 테스트의 성공을 세 원격 서비스의 성공으로 해석하지 않는다. 다음 차시는 이러한 상태와 원본 근거를 한 화면에 저장한다.</p></section><section class="lesson" id="s8"><h1>8차시 · 학습 근거가 남는 결과 HTML·PDF 만들기</h1>
+<h2>결과만이 아니라 어떤 데이터로 만들었는지 남긴다</h2>
+<p>근거 화면에는 제공 데이터 D04·GSM8K 원본 링크·main/test·0부터 센 행 번호·원문 question이 함께 있어야 한다. 원본 ID가 없으므로 수업용 파생 ID 규칙도 밝힌다. 원본 answer는 실행 후 대조 영역에만 보여준다. 이렇게 해야 어떤 원본 문제를 어느 모델/방식으로 처리했는지 연결할 수 있다.</p>
+<p>실제/모의 실행과 원본/가공 여부는 생략하지 않는다. 이번 표본은 원본 question/answer를 보존한 발췌본이다.</p>
+<p><figure><svg width="213pt" height="329pt"
+ viewBox="0.00 0.00 212.80 328.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(14.4 314.4)">
+<title>G</title>
+<!-- a -->
+<g id="node1" class="node">
+<title>a</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M172,-300C172,-300 12,-300 12,-300 6,-300 0,-294 0,-288 0,-288 0,-272 0,-272 0,-266 6,-260 12,-260 12,-260 172,-260 172,-260 178,-260 184,-266 184,-272 184,-272 184,-288 184,-288 184,-294 178,-300 172,-300"/>
+<text text-anchor="middle" x="92" y="-283.4" font-family="Noto Sans CJK KR" font-size="12.00">main.py · make_result()</text>
+<text text-anchor="middle" x="92" y="-270.4" font-family="Noto Sans CJK KR" font-size="12.00">원본 위치 + 예측/정답 + events</text>
+</g>
+<!-- b -->
+<g id="node2" class="node">
+<title>b</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M161.5,-235C161.5,-235 22.5,-235 22.5,-235 16.5,-235 10.5,-229 10.5,-223 10.5,-223 10.5,-207 10.5,-207 10.5,-201 16.5,-195 22.5,-195 22.5,-195 161.5,-195 161.5,-195 167.5,-195 173.5,-201 173.5,-207 173.5,-207 173.5,-223 173.5,-223 173.5,-229 167.5,-235 161.5,-235"/>
+<text text-anchor="middle" x="92" y="-218.4" font-family="Noto Sans CJK KR" font-size="12.00">report.py · save_report()</text>
+<text text-anchor="middle" x="92" y="-205.4" font-family="Noto Sans CJK KR" font-size="12.00">JSON 저장 / HTML 구성</text>
+</g>
+<!-- a&#45;&gt;b -->
+<g id="edge1" class="edge">
+<title>a&#45;&gt;b</title>
+<path fill="none" stroke="#397e8b" d="M92,-259.76C92,-255.24 92,-250.32 92,-245.47"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="95.5,-245.13 92,-235.13 88.5,-245.13 95.5,-245.13"/>
+</g>
+<!-- c -->
+<g id="node3" class="node">
+<title>c</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M162,-170C162,-170 22,-170 22,-170 16,-170 10,-164 10,-158 10,-158 10,-142 10,-142 10,-136 16,-130 22,-130 22,-130 162,-130 162,-130 168,-130 174,-136 174,-142 174,-142 174,-158 174,-158 174,-164 168,-170 162,-170"/>
+<text text-anchor="middle" x="92" y="-153.4" font-family="Noto Sans CJK KR" font-size="12.00">report.py · text_block()</text>
+<text text-anchor="middle" x="92" y="-140.4" font-family="Noto Sans CJK KR" font-size="12.00">HTML escape + pre&#45;wrap</text>
+</g>
+<!-- b&#45;&gt;c -->
+<g id="edge2" class="edge">
+<title>b&#45;&gt;c</title>
+<path fill="none" stroke="#397e8b" d="M92,-194.76C92,-190.24 92,-185.32 92,-180.47"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="95.5,-180.13 92,-170.13 88.5,-180.13 95.5,-180.13"/>
+</g>
+<!-- d -->
+<g id="node4" class="node">
+<title>d</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M170.5,-105C170.5,-105 13.5,-105 13.5,-105 7.5,-105 1.5,-99 1.5,-93 1.5,-93 1.5,-77 1.5,-77 1.5,-71 7.5,-65 13.5,-65 13.5,-65 170.5,-65 170.5,-65 176.5,-65 182.5,-71 182.5,-77 182.5,-77 182.5,-93 182.5,-93 182.5,-99 176.5,-105 170.5,-105"/>
+<text text-anchor="middle" x="92" y="-88.4" font-family="Noto Sans CJK KR" font-size="12.00">results/sXX_시각.html</text>
+<text text-anchor="middle" x="92" y="-75.4" font-family="Noto Sans CJK KR" font-size="12.00">실제 줄바꿈 · 원본 데이터 출처</text>
+</g>
+<!-- c&#45;&gt;d -->
+<g id="edge3" class="edge">
+<title>c&#45;&gt;d</title>
+<path fill="none" stroke="#397e8b" d="M92,-129.76C92,-125.24 92,-120.32 92,-115.47"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="95.5,-115.13 92,-105.13 88.5,-115.13 95.5,-115.13"/>
+</g>
+<!-- e -->
+<g id="node5" class="node">
+<title>e</title>
+<path fill="#eff7fb" stroke="#aac5d3" d="M149,-40C149,-40 35,-40 35,-40 29,-40 23,-34 23,-28 23,-28 23,-12 23,-12 23,-6 29,0 35,0 35,0 149,0 149,0 155,0 161,-6 161,-12 161,-12 161,-28 161,-28 161,-34 155,-40 149,-40"/>
+<text text-anchor="middle" x="92" y="-23.4" font-family="Noto Sans CJK KR" font-size="12.00">브라우저 인쇄 → PDF</text>
+<text text-anchor="middle" x="92" y="-10.4" font-family="Noto Sans CJK KR" font-size="12.00">또는 결과 창 화면 캡처</text>
+</g>
+<!-- d&#45;&gt;e -->
+<g id="edge4" class="edge">
+<title>d&#45;&gt;e</title>
+<path fill="none" stroke="#397e8b" d="M92,-64.76C92,-60.24 92,-55.32 92,-50.47"/>
+<polygon fill="#397e8b" stroke="#397e8b" points="95.5,-50.13 92,-40.13 88.5,-50.13 95.5,-50.13"/>
+</g>
+</g>
+</svg>
+</figure></p>
+<h2>app/report.py: 안전하게 실제 줄바꿈 표시</h2>
+<pre><code class="language-python">def text_block(label, value):
+    return f'&lt;h3&gt;{escape(label)}&lt;/h3&gt;&lt;div class=&quot;result-text&quot;&gt;{escape(str(value))}&lt;/div&gt;'
+</code></pre>
+<p><code>escape</code>는 <code>&lt;script&gt;</code> 같은 문자열이 HTML 태그로 실행되지 않고 글자로 보이게 한다. 실제 개행은 없어지지 않는다. <code>.result-text</code>에 다음 CSS를 적용하면 브라우저가 여러 줄과 빈 줄을 보존하면서 긴 문장을 자동으로 접는다.</p>
+<pre><code class="language-css">.result-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+}
+@media print {
+  .result-text {
+    white-space: pre-wrap;
+    overflow: visible;
+    max-height: none;
+  }
+}
+</code></pre>
+<p>문자 그대로의 역슬래시+n은 CSS로 개행이 되지 않는다. 이 표본의 원본 answer는 알려진 저장 계약에 따라 그 필드의 표시 단계에서만 <code>replace('\\n', '\n')</code>를 적용한다. JSON으로 읽은 일반 응답은 다시 repr/JSON 문자열로 만들지 않고 바로 표시한다. 코드·경로·정규식에 원래 들어 있던 역슬래시를 전체 문서에서 바꾸지 않는다.</p>
+<h2>전체 저장 함수 읽기</h2>
+<pre><code class="language-python">def save_report(session, results):
+    folder = ROOT / 'results'
+    folder.mkdir(exist_ok=True)
+    stamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+    stem = folder / f's{session:02}_{stamp}'
+    stem.with_suffix('.json').write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding='utf-8')
+    cards = []
+    for item in results:
+        row = item['record']
+        body = text_block('제공 데이터 위치', f'D04 · openai/gsm8k · config=main · split=test\n원본 행={row[&quot;row_index&quot;]} (0부터) · 수업용 ID={row[&quot;id&quot;]}\n원본 필드=question, answer; 수업용 ID는 파생값')
+        body += text_block('원본 question', row['question'])
+        body += text_block('방식 / 실행 모드', f'{item[&quot;strategy&quot;]} / {item[&quot;mode&quot;]}\n공급자={item[&quot;provider&quot;]} · 모델={item[&quot;model&quot;]} · 상태={item[&quot;status&quot;]}')
+        body += text_block('처리 결과', item['text'])
+        for event in item.get('events', []):
+            body += text_block(f'{event[&quot;turn&quot;]}회 · {event[&quot;kind&quot;]}', event['text'])
+        body += text_block('정답 대조 (모델 입력에는 제외)', f'예측={item.get(&quot;predicted&quot;)} · 원본 정답={item.get(&quot;expected&quot;)} · 일치={item.get(&quot;correct&quot;)}')
+        if item.get('metrics'):
+            body += text_block('실측 API 사용량', json.dumps(item['metrics'], ensure_ascii=False, indent=2))
+        # GSM8K answer는 이 표본에서 literal \n을 사용한다. 이 필드의 표시만 복원한다.
+        body += text_block('원본 answer (표시용 개행 복원)', row['answer'].replace('\\n', '\n'))
+        cards.append('&lt;article&gt;' + body + '&lt;/article&gt;')
+    comparable = [x for x in results if x['strategy'] != 'local']
+    matched = sum(x.get('correct') is True for x in comparable)
+    parsed = sum(x.get('predicted') is not None for x in comparable)
+    summary = f'비교 항목 {len(comparable)}건 · 숫자 파싱 {parsed}건 · 정답 일치 {matched}건' if comparable else '로컬 구조 실습 · 모델 성능 비교 없음'
+    html = f'''&lt;!doctype html&gt;&lt;html lang=&quot;ko&quot;&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;U2-02 실습 결과&lt;/title&gt;
+&lt;style&gt;{STYLE}&lt;/style&gt;&lt;header&gt;&lt;h1&gt;2026-11-18 · CoT·ReAct 실습 결과&lt;/h1&gt;
+&lt;p&gt;제공 데이터: D04 GSM8K · &lt;a href=&quot;{SOURCE}&quot;&gt;{SOURCE}&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;{summary}&lt;/p&gt;&lt;p&gt;모의 대본의 정답 일치 수는 모델 성능 지표가 아닙니다. 소표본 결과를 GSM8K 전체 점수로 일반화하지 않습니다.&lt;/p&gt;
+&lt;p&gt;model=공개 응답 / tool=실제 로컬 계산 / mock=교사 작성 대본. 공개 풀이를 내부 사고 기록으로 해석하지 않습니다.&lt;/p&gt;&lt;/header&gt;{''.join(cards)}&lt;/html&gt;'''
+    stem.with_suffix('.html').write_text(html, encoding='utf-8')
+    return stem.with_suffix('.html')
+</code></pre>
+<p><code>session</code>은 결과 파일 이름의 차시 번호이고 <code>results</code>는 make_result가 만든 dict 목록이다. 날짜·시각·마이크로초를 파일명에 넣어 재실행 결과를 구분한다. 같은 stem의 JSON은 다시 읽을 수 있는 구조화 기록이고 HTML은 브라우저에서 확인할 화면이다. 함수 반환값은 HTML 파일의 Path이며 HTML 문자열 자체가 아니다.</p>
+<p><code>row["row_index"]</code>·<code>row["id"]</code>는 제공 데이터 위치 영역에 들어간다. <code>events</code>의 kind가 tool이면 실제 calculate 반환 기록, model이면 공개 모델 응답이다. 모의 대본에서는 provider=mock임이 항상 드러난다. metrics는 실제 원격 요청의 seconds·usage이며 대본에서 가짜 지연/토큰을 만들지 않는다.</p>
+<h2>main.py의 실행 진입점과 전체 분기</h2>
+<pre><code class="language-python">def main():
+    load_dotenv(ROOT / '.env', override=False)
+    p = argparse.ArgumentParser(description='GSM8K CoT·ReAct 8차시 실습')
+    p.add_argument('--session', type=int, choices=range(1, 9), required=True)
+    p.add_argument('--id', default='gsm8k-main-test-0000')
+    p.add_argument('--count', type=int, choices=range(1, 7), default=1)
+    p.add_argument('--provider', choices=('openai', 'groq', 'gemini'), default=os.getenv('LLM_PROVIDER', 'groq'))
+    mode = p.add_mutually_exclusive_group()
+    mode.add_argument('--live', action='store_true')
+    mode.add_argument('--mock', action='store_true')
+    p.add_argument('--strategy', choices=('direct', 'summary', 'fewshot'), default='summary')
+    p.add_argument('--max-turns', type=int, choices=range(1, 6), default=3)
+    p.add_argument('--max-calls', type=int, choices=range(1, 31), default=8)
+    p.add_argument('--max-tokens', type=int, default=800)
+    p.add_argument('--input', type=Path)
+    args = p.parse_args()
+    rows = load_records()
+    selected = next((row for row in rows if row['id'] == args.id), None)
+    if selected is None: p.error('표본에 없는 ID입니다.')
+    if args.session == 8:
+        if args.input is None: p.error('--input results/파일.json 을 지정하세요.')
+        items = json.loads(args.input.read_text(encoding='utf-8'))
+        print(save_report(8, items))
+        return
+    if args.session in (1, 2, 4, 7):
+        chat = ScriptedChat(selected['id'])
+        if args.session == 1:
+            text = f'표본 {len(rows)}개\n선택 ID: {selected[&quot;id&quot;]}\nquestion만 모델 입력에 사용; answer는 실행 후 대조'
+        elif args.session == 2:
+            text = '\n\n'.join(strategy + '\n' + '\n'.join(m['role'] + ': ' + m['content'] for m in to_messages(build_prompt(strategy).invoke({'question': selected['question']}))) for strategy in ('direct', 'summary', 'fewshot'))
+        elif args.session == 4:
+            text = f'계산식: (16-3-4)*2\n실제 로컬 계산 결과: {calculate(&quot;(16-3-4)*2&quot;)}\n모델 호출 없음'
+        else: text = failure_demo()
+        items = [make_result(selected, 'local', chat, {'status': 'local_only', 'text': text, 'events': []})]
+        items[0]['mode'], items[0]['provider'], items[0]['model'] = 'local_only', 'none', 'none'
+    else:
+        remote = RemoteChat(args.provider, args.max_calls, args.max_tokens) if args.live else None
+        print(f'실행: {args.provider if args.live else &quot;mock 교사 대본&quot;}; '
+              f'{&quot;OpenAI 유료 호출&quot; if args.live and args.provider == &quot;openai&quot; else &quot;원격 호출은 계정 요금/무료 한도 확인 필요&quot; if args.live else &quot;API 호출 없음&quot;}')
+        items = []
+        targets = rows[:args.count] if args.session == 6 else [selected]
+        strategies = ('direct', 'summary', 'react') if args.session == 6 else ('react',) if args.session == 5 else (args.strategy,)
+        for row in targets:
+            for strategy in strategies:
+                chat = remote if args.live else ScriptedChat(row['id'])
+                item = run_strategy(row, strategy, chat, args.max_turns)
+                items.append(item)
+                print(row['id'], strategy, item['status'], item['predicted'])
+                if item['status'] == 'error': break
+            if items[-1]['status'] == 'error': break
+    path = save_report(args.session, items)
+    print('결과 HTML:', path)
+</code></pre>
+<p><code>argparse</code>는 어떤 실습을 실행할지 선택한다. <code>parse_args()</code> 결과의 session 값이 1·2·4·7이면 로컬 코드만 실행한다. 3·5·6이면 live 여부에 따라 RemoteChat 또는 ScriptedChat을 생성한다. 8이면 이미 저장한 JSON을 다시 읽어 보고서만 만든다. 따라서 8차시 재출력 자체는 API 호출 비용이 없다.</p>
+<p>원격 비교에서 RemoteChat 객체는 한 번 생성해 재사용하므로 max-calls가 모든 선택 문제와 전략에 걸쳐 합산된다. 모의 객체는 각 문제별 fixture를 사용한다. <code>if __name__ == "__main__": main()</code>은 파일을 실행했을 때만 이 분기 함수를 시작하며, 테스트에서 main 모듈을 import했다고 명령행 파싱이 자동 시작되지 않게 한다.</p>
+<pre><code class="language-bash">python main.py --session 6 --count 1 --mock
+python main.py --session 8 --input results/s06_실제로생성된파일명.json
+</code></pre>
+<p>두 번째 명령의 파일명은 첫 실행에서 생긴 실제 JSON 이름으로 바꾼다. 예시 문자열을 그대로 실행하면 파일을 찾지 못한다. 생성된 HTML을 브라우저로 열고 원본 위치·question·처리 결과·tool 관찰·최종 답·실행 모드가 읽히도록 확인한다. 파일 메뉴의 인쇄에서 PDF 저장을 선택하고, 머리말/꼬리말의 로컬 경로 표시는 필요하면 끈다. 긴 결과가 다음 페이지까지 빠짐없이 출력되는지 미리보기에서 확인한다.</p>
+<p>Windows에서는 결과 창을 연 뒤 Win+Shift+S로 해당 영역을 캡처해 <code>evidence/U2-02_D04_result.png</code>처럼 저장할 수 있다. 파일명은 수업용 제안이다. 실제 원격 API 근거가 필요하면 --live 결과를 캡처해야 한다. 포함된 예시 화면은 실제 로컬 계산과 교사 대본 모델의 결과 HTML을 PDF로 인쇄 렌더링한 것이며, 원격 API 성공 증빙을 대신하지 않는다.</p>
+<h2>다음 수업으로 이어지는 부분</h2>
+<p>오늘의 Action Input과 <code>#### 숫자</code>는 문자열 규약이라 형식 오류가 날 수 있다. 11월 19일에는 이 문제를 JSON 구조와 Pydantic 검증으로 연결한다. 오늘은 별도 강제 JSON 스키마나 native Function Calling 구현을 미리 넣지 않고, 메시지 생성·호출·계산·관찰·대조 경계를 이해한 상태로 넘긴다.</p></section></main></body></html>

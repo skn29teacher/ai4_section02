@@ -1,7 +1,7 @@
 {
   "topic_id": "U2-01",
   "session": 7,
-  "created_at": "2026-11-16T09:27:48.067720+00:00",
+  "created_at": "2026-11-17T07:06:01.324309+00:00",
   "data": {
     "resource_id": "D01",
     "name": "Fake Store API 유래 공개 가공 상품 표본",
@@ -24,9 +24,9 @@
     "sha256": "14390850b813cf54b8c86c7e6098077a52302b191d1a7012bf8cbfad5b68965f"
   },
   "dataset_mode": "공개 가공 표본 · 원본 API 직접 수집 아님",
-  "provider": "mock",
-  "model": "local-fixture",
-  "model_mode": "모의 모델 · 실제 추론 아님",
+  "provider": "openai",
+  "model": "gpt-4.1-mini",
+  "model_mode": "원격 모델 설정 · 항목별 실행 상태 확인",
   "temperature": null,
   "max_output": 500,
   "notes": [
@@ -41,12 +41,7 @@
       "context_hash": "4683412b1782",
       "question_hash": "de297c6ef004",
       "prompt_hash": "fdbd66f4de1b",
-      "status": "ok",
-      "answer": "[모의 응답] 안녕하세요. 상품 설명과 질문을 연결하는 형식을 확인했습니다. 재고·배송·반품 정책은 별도 확인이 필요합니다. 문의별 실제 답변을 생성한 결과는 아닙니다.",
-      "characters": 94,
-      "within_500_chars": true,
-      "usage": null,
-      "elapsed_seconds": 0.014
+      "elapsed_seconds": 14.1845
     },
     {
       "record_id": "row-001",
@@ -56,12 +51,7 @@
       "context_hash": "4683412b1782",
       "question_hash": "de297c6ef004",
       "prompt_hash": "60e25ea2f231",
-      "status": "ok",
-      "answer": "[모의 응답] 안녕하세요. 상품 설명과 질문을 연결하는 형식을 확인했습니다. 재고·배송·반품 정책은 별도 확인이 필요합니다. 문의별 실제 답변을 생성한 결과는 아닙니다.",
-      "characters": 94,
-      "within_500_chars": true,
-      "usage": null,
-      "elapsed_seconds": 0.0012
+      "elapsed_seconds": 1.5069
     },
     {
       "record_id": "row-001",
@@ -71,12 +61,7 @@
       "context_hash": "4683412b1782",
       "question_hash": "de297c6ef004",
       "prompt_hash": "88dc33e58ecb",
-      "status": "ok",
-      "answer": "[모의 응답] 안녕하세요. 상품 설명과 질문을 연결하는 형식을 확인했습니다. 재고·배송·반품 정책은 별도 확인이 필요합니다. 문의별 실제 답변을 생성한 결과는 아닙니다.",
-      "characters": 94,
-      "within_500_chars": true,
-      "usage": null,
-      "elapsed_seconds": 0.0013
+      "elapsed_seconds": 2.0961
     },
     {
       "record_id": "row-003",
@@ -86,12 +71,7 @@
       "context_hash": "300ad1e92361",
       "question_hash": "82caf6d47861",
       "prompt_hash": "30642afd67da",
-      "status": "ok",
-      "answer": "[모의 응답] 안녕하세요. 상품 설명과 질문을 연결하는 형식을 확인했습니다. 재고·배송·반품 정책은 별도 확인이 필요합니다. 문의별 실제 답변을 생성한 결과는 아닙니다.",
-      "characters": 94,
-      "within_500_chars": true,
-      "usage": null,
-      "elapsed_seconds": 0.0009
+      "elapsed_seconds": 1.5429
     },
     {
       "record_id": "row-003",
@@ -101,12 +81,7 @@
       "context_hash": "300ad1e92361",
       "question_hash": "82caf6d47861",
       "prompt_hash": "b6437ff521e5",
-      "status": "ok",
-      "answer": "[모의 응답] 안녕하세요. 상품 설명과 질문을 연결하는 형식을 확인했습니다. 재고·배송·반품 정책은 별도 확인이 필요합니다. 문의별 실제 답변을 생성한 결과는 아닙니다.",
-      "characters": 94,
-      "within_500_chars": true,
-      "usage": null,
-      "elapsed_seconds": 0.0006
+      "elapsed_seconds": 1.6376
     },
     {
       "record_id": "row-003",
@@ -116,12 +91,7 @@
       "context_hash": "300ad1e92361",
       "question_hash": "82caf6d47861",
       "prompt_hash": "753d56402f2c",
-      "status": "ok",
-      "answer": "[모의 응답] 안녕하세요. 상품 설명과 질문을 연결하는 형식을 확인했습니다. 재고·배송·반품 정책은 별도 확인이 필요합니다. 문의별 실제 답변을 생성한 결과는 아닙니다.",
-      "characters": 94,
-      "within_500_chars": true,
-      "usage": null,
-      "elapsed_seconds": 0.0011
+      "elapsed_seconds": 1.9142
     },
     {
       "record_id": "row-009",
@@ -131,12 +101,7 @@
       "context_hash": "ef2baa4463e1",
       "question_hash": "e0e51cec999a",
       "prompt_hash": "92848b7bf2b0",
-      "status": "ok",
-      "answer": "[모의 응답] 안녕하세요. 상품 설명과 질문을 연결하는 형식을 확인했습니다. 재고·배송·반품 정책은 별도 확인이 필요합니다. 문의별 실제 답변을 생성한 결과는 아닙니다.",
-      "characters": 94,
-      "within_500_chars": true,
-      "usage": null,
-      "elapsed_seconds": 0.0007
+      "elapsed_seconds": 2.0412
     },
     {
       "record_id": "row-009",
@@ -146,12 +111,7 @@
       "context_hash": "ef2baa4463e1",
       "question_hash": "e0e51cec999a",
       "prompt_hash": "ce2385e7ce3c",
-      "status": "ok",
-      "answer": "[모의 응답] 안녕하세요. 상품 설명과 질문을 연결하는 형식을 확인했습니다. 재고·배송·반품 정책은 별도 확인이 필요합니다. 문의별 실제 답변을 생성한 결과는 아닙니다.",
-      "characters": 94,
-      "within_500_chars": true,
-      "usage": null,
-      "elapsed_seconds": 0.0006
+      "elapsed_seconds": 1.9763
     },
     {
       "record_id": "row-009",
@@ -161,12 +121,7 @@
       "context_hash": "ef2baa4463e1",
       "question_hash": "e0e51cec999a",
       "prompt_hash": "6e496aec2786",
-      "status": "ok",
-      "answer": "[모의 응답] 안녕하세요. 상품 설명과 질문을 연결하는 형식을 확인했습니다. 재고·배송·반품 정책은 별도 확인이 필요합니다. 문의별 실제 답변을 생성한 결과는 아닙니다.",
-      "characters": 94,
-      "within_500_chars": true,
-      "usage": null,
-      "elapsed_seconds": 0.0008
+      "elapsed_seconds": 1.6539
     }
   ]
 }

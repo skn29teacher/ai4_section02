@@ -1,0 +1,6 @@
+digraph G { graph [rankdir=TB,bgcolor="transparent",pad="0.2",nodesep="0.35",ranksep="0.35"]; node [shape=box,style="rounded,filled",fontname="Noto Sans CJK KR",fontsize=12,color="#aac5d3",fillcolor="#eff7fb",margin="0.16,0.10"]; edge [fontname="Noto Sans CJK KR",fontsize=10,color="#397e8b"];a[label="main.py · --live / --mock"];b[label="RemoteChat(provider)
+키 · 모델 · 요청 예산 확인"];c[label="OpenAI Chat Completions
+유료 호출 경로"];d[label="Groq Chat Completions
+무료 플랜/모델 한도 확인"];e[label="Gemini generateContent
+무료/유료 프로젝트 확인"];f[label="ScriptedChat
+교사 대본 · API 호출 없음"];a->b[label="--live"];a->f[label="--mock 또는 미지정"];b->c[label="openai 선택"];b->d[label="groq 선택"];b->e[label="gemini 선택"];}

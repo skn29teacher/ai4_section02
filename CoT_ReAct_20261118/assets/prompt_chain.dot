@@ -1,0 +1,6 @@
+digraph G { graph [rankdir=TB,bgcolor="transparent",pad="0.2",nodesep="0.35",ranksep="0.35"]; node [shape=box,style="rounded,filled",fontname="Noto Sans CJK KR",fontsize=12,color="#aac5d3",fillcolor="#eff7fb",margin="0.16,0.10"]; edge [fontname="Noto Sans CJK KR",fontsize=10,color="#397e8b"];a[label="main.py · run_strategy()
+입력 dict: question"];b[label="core.py · build_prompt(strategy)
+ChatPromptTemplate"];c[label="core.py · to_messages()
+role/content 목록"];d[label="providers.py
+RemoteChat 또는 ScriptedChat"];e[label="main.py · make_result()
+최종 숫자 · 실행 상태"];a->b;b->c;c->d;d->e;}

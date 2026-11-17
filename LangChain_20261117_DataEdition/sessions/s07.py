@@ -24,7 +24,7 @@ def main():
                   "question_hash": hashlib.sha256(values["question"].encode()).hexdigest()[:12],
                   "prompt_hash": hashlib.sha256(get_prompt(version).invoke(values).to_string().encode()).hexdigest()[:12]}
                 try:
-                    message = (get_prompt(version) | model).invoke(values)
+                    message = (get_prompt(version) | model).invoke(values)                    
                     answer = StrOutputParser().invoke(message)
                     row.update(status="ok", answer=answer, characters=len(answer),
                                within_500_chars=len(answer)<=500, usage=message.usage_metadata)
