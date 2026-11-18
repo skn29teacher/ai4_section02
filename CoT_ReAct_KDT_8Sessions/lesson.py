@@ -42,27 +42,22 @@ def calculate(action, a, b):
     raise ValueError(f"지원하지 않는 연산: {action}")
 
 
-def react(messages, chat, events, tool=calculate, max_steps=5):
-    for _ in range(max_steps):
+def react(messages, chat, events):
+    for _ in range(5):
         reply = chat(messages)
         events.append(("ReAct · 모델 응답", reply))
         messages.append({"role": "assistant", "content": reply})
-
         step = json.loads(reply)
-        if isinstance(step, dict) and set(step) == {"final"}:
-            if not isinstance(step["final"], str) or not step["final"].strip():
-                raise ValueError("final에는 최종 답을 문자열로 입력하세요.")
+        if isinstance(step, dict) and set(step) == {"final"} and isinstance(step["final"], str):
             return
-
         if not isinstance(step, dict) or set(step) != {"action", "a", "b"}:
-            raise ValueError("계산 요청에는 action, a, b 필드가 필요합니다.")
-
-        value = tool(step["action"], step["a"], step["b"])
+            raise ValueError("action, a, b 또는 final 필드를 확인한다.")
+        value = calculate(step["action"], step["a"], step["b"])
         observation = f"Observation: {value}"
         events.append(("계산 도구 · 반환값", observation))
         messages.append({"role": "user", "content": observation})
+    raise ValueError("다섯 번의 응답 안에 최종 답이 없어 종료했다.")
 
-    raise ValueError(f"{max_steps}번의 응답 안에 최종 답을 얻지 못했습니다.")
 
 def demo(messages):
     if messages[0]["content"] == COT:

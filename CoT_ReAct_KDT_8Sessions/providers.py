@@ -76,3 +76,5 @@ class RemoteChat:
             raise RuntimeError('연결 실패 또는 45초 타임아웃; 자동 재시도 없음') from None
         self.metrics.append({'seconds': round(time.perf_counter() - started, 3), 'usage': usage})
         return text
+
+

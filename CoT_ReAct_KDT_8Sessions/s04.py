@@ -17,7 +17,6 @@ if __name__ == "__main__":
     p.add_argument("--a", type=int, default=16)
     p.add_argument("--b", type=int, default=3)
     args = p.parse_args()
-    # print(args, type(args),vars(args))
     reply = json.dumps(vars(args))
-    print(reply,type(reply))
+    print(reply)
     print("Observation:", execute(reply))
