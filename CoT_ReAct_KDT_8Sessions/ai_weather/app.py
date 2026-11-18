@@ -32,6 +32,7 @@ class Settings:
     openai_api_key: str
     openai_model: str
     intent_max_tokens: int
+    final_max_tokens: int
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -55,6 +56,7 @@ class Settings:
             openai_api_key=os.getenv("OPENAI_API_KEY", "").strip(),
             openai_model=os.getenv("OPENAI_MODEL", "").strip(),
             intent_max_tokens=bounded_int("INTENT_MAX_TOKENS", 192, 512),
+            final_max_tokens=bounded_int("FINAL_MAX_TOKENS", 384, 1024),
         )
 
     def model_name(self, provider: str) -> str:
@@ -129,6 +131,17 @@ Do not invent a location. Keep weather_need short.
 Current date in Asia/Seoul: {today}.
 """
 
+FINAL_ANSWER_SYSTEM_PROMPT = """\
+You generate the final answer in Korean using the supplied user question,
+answer_mode, intent_analysis, and tool_result.
+If answer_mode is "weather_result", answer only with facts in tool_result and
+clearly say the data is simulated when is_dummy is true.
+If answer_mode is "missing_location", ask the user which location they mean.
+If answer_mode is "direct_answer", answer the original non-weather question.
+Never invent weather facts when tool_result is null. Do not reveal hidden
+reasoning. Keep the answer concise.
+"""
+
 
 def _message_text(content: Any) -> str:
     if isinstance(content, str):
@@ -140,6 +153,35 @@ def _message_text(content: Any) -> str:
             if isinstance(item, dict) and isinstance(item.get("text"), str)
         )
     raise IntentOutputError("모델 응답 본문이 문자열이 아닙니다.")
+
+
+def _generate_final_answer(
+    question: str,
+    answer_mode: str,
+    analysis: dict[str, Any],
+    weather_data: dict[str, Any] | None,
+    model: Any,
+) -> tuple[str, Any]:
+    response = model.invoke(
+        [
+            SystemMessage(content=FINAL_ANSWER_SYSTEM_PROMPT),
+            HumanMessage(
+                content=json.dumps(
+                    {
+                        "question": question,
+                        "answer_mode": answer_mode,
+                        "intent_analysis": analysis,
+                        "tool_result": weather_data,
+                    },
+                    ensure_ascii=False,
+                )
+            ),
+        ]
+    )
+    answer = _message_text(response.content).strip()
+    if not answer:
+        raise RuntimeError("OpenAI 최종 답변이 비어 있습니다.")
+    return answer, response
 
 
 def _json_object(text: str) -> dict[str, Any]:
@@ -253,6 +295,7 @@ def _base_result(
     status: str,
     provider: str,
     model: str,
+    final_model: str,
     analysis: dict[str, Any] | None,
     message: str,
     api_calls: int,
@@ -262,6 +305,8 @@ def _base_result(
         "status": status,
         "provider": provider,
         "model": model,
+        "final_provider": "openai",
+        "final_model": final_model,
         "intent_analysis": analysis,
         "message": message,
         "weather_data": None,
@@ -284,67 +329,80 @@ def answer_question(
         raise ConfigurationError("provider는 gemini 또는 openai여야 합니다.")
     model_factory = model_factory or create_chat_model
     model_name = settings.model_name(provider)
+    final_model_name = settings.openai_model
 
+    final_model = model_factory("openai", settings.final_max_tokens, settings)
     intent_model = model_factory(provider, settings.intent_max_tokens, settings)
     try:
         analysis, intent_response = analyze_intent(question, intent_model)
     except IntentOutputError as exc:
         return _base_result(
-            "intent_error", provider, model_name, None, str(exc), 1, []
+            "intent_error",
+            provider,
+            model_name,
+            final_model_name,
+            None,
+            str(exc),
+            1,
+            [],
         )
     usage_messages = [intent_response]
 
     if analysis["tools"] is None:
-        return _base_result(
-            "not_weather_intent",
-            provider,
-            model_name,
-            analysis,
-            "날씨 관련 질문이 아닙니다. 날씨 질문을 입력해 주세요.",
-            1,
-            usage_messages,
+        status = "not_weather_intent"
+        answer_mode = "direct_answer"
+        weather_data = None
+        tool_calls = 0
+    elif not analysis["location"]:
+        status = "needs_clarification"
+        answer_mode = "missing_location"
+        weather_data = None
+        tool_calls = 0
+    else:
+        status = "ok"
+        answer_mode = "weather_result"
+        weather_data = dummy_weather_api(
+            analysis["location"],
+            analysis["date"],
+            analysis["weather_need"],
         )
-    if not analysis["location"]:
-        result = _base_result(
-            "needs_clarification",
-            provider,
-            model_name,
-            analysis,
-            "어느 지역의 날씨를 확인할까요?",
-            1,
-            usage_messages,
-        )
-        result["clarification_question"] = "지역명을 알려주세요."
-        return result
+        tool_calls = 1
 
-    weather_data = dummy_weather_api(
-        analysis["location"],
-        analysis["date"],
-        analysis["weather_need"],
+    final_answer, final_response = _generate_final_answer(
+        question,
+        answer_mode,
+        analysis,
+        weather_data,
+        final_model,
     )
     result = _base_result(
-        "ok",
+        status,
         provider,
         model_name,
+        final_model_name,
         analysis,
-        "날씨 도구를 호출했습니다. weather_data는 가상 데이터입니다.",
-        1,
-        usage_messages,
+        final_answer,
+        2,
+        usage_messages + [final_response],
     )
-    result["tool_calls"] = 1
+    result["tool_calls"] = tool_calls
     result["weather_data"] = weather_data
+    if status == "needs_clarification":
+        result["clarification_question"] = "지역명을 알려주세요."
     if analysis["date_was_defaulted"]:
         result["assumptions"] = ["질문에 날짜가 없어 오늘 날짜를 사용했습니다."]
     return result
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(description="Gemini 우선 날씨 의도 분석 및 도구 실행")
+    parser = argparse.ArgumentParser(
+        description="날씨 의도 분석, 도구 실행 및 OpenAI 최종 답변"
+    )
     parser.add_argument("question", help="날씨에 대해 묻는 자연어 질문")
     parser.add_argument(
         "--provider",
         choices=("gemini", "openai"),
-        help="기본은 .env의 AI_PROVIDER (Gemini); OpenAI는 명시적으로 선택",
+        help="intent 분류 provider override; 최종 답변은 항상 OpenAI",
     )
     args = parser.parse_args(argv)
     settings = Settings.from_env()
@@ -354,6 +412,8 @@ def main(argv: list[str] | None = None) -> None:
         result = {
             "status": "configuration_error",
             "provider": args.provider or settings.provider,
+            "final_provider": "openai",
+            "final_model": settings.openai_model,
             "message": str(exc),
         }
     print(json.dumps(result, ensure_ascii=False, indent=2))
