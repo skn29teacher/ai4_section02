@@ -1,11 +1,13 @@
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 
 from lesson import MAX_REACT_TURNS, REACT, calculate, prompt, react
 from s02 import records
-from s06 import answer_numbers, compare
+from s06 import answer_numbers, compare, print_results
 from s08 import report
 
 
@@ -112,6 +114,37 @@ class CompareTests(unittest.TestCase):
         self.assertIn("수치 일치", html)
         self.assertIn("API 요청 3회", html)
         self.assertIn("도구 실행 2회", html)
+
+    def test_terminal_results_have_named_aligned_columns(self):
+        cases = [
+            {
+                "row": 0,
+                "method": "react",
+                "status": "정답 일치",
+                "predicted": [108.0, 24.0],
+                "api_requests": 8,
+                "tools": 7,
+            },
+            {
+                "row": 3,
+                "method": "direct",
+                "status": "실행 중단",
+                "predicted": None,
+                "api_requests": 12,
+                "tools": 0,
+            },
+        ]
+
+        output = StringIO()
+        with redirect_stdout(output):
+            print_results(cases)
+        lines = output.getvalue().splitlines()
+
+        self.assertIn("API", lines[0])
+        self.assertIn("TOOLS", lines[0])
+        self.assertEqual(len({len(line) for line in lines}), 1)
+        self.assertIn("108, 24", lines[2])
+        self.assertIn("STOP", lines[3])
 
     def test_react_allows_final_answer_after_seven_tool_steps(self):
         replies = [

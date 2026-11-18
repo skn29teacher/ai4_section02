@@ -27,6 +27,37 @@ def display_number(values):
     return values[0] if len(values) == 1 else values
 
 
+def format_number(value):
+    number = float(value)
+    if number.is_integer():
+        return f"{int(number):,}"
+    return f"{number:,.2f}".rstrip("0").rstrip(".")
+
+
+def print_results(cases):
+    status_labels = {
+        "정답 일치": "PASS",
+        "정답 불일치": "FAIL",
+        "답 형식 확인": "FORMAT",
+        "기준 답 형식 확인": "NO_REF",
+        "실행 중단": "STOP",
+    }
+    print(f"{'ROW':>3}  {'METHOD':<8}  {'STATUS':<8}  {'PREDICTED':>14}  {'API':>3}  {'TOOLS':>5}")
+    print(f"{'-' * 3}  {'-' * 8}  {'-' * 8}  {'-' * 14}  {'-' * 3}  {'-' * 5}")
+    for case in cases:
+        values = case["predicted"]
+        predicted = (
+            ", ".join(format_number(value) for value in values)
+            if isinstance(values, list)
+            else format_number(values) if values is not None else "-"
+        )
+        status = status_labels.get(case["status"], "ERROR")
+        print(
+            f"{case['row']:>3}  {case['method']:<8}  {status:<8}  "
+            f"{predicted:>14}  {case['api_requests']:>3}  {case['tools']:>5}"
+        )
+
+
 def compare(row, remote, provider):
     cases = []
     templates = variants(row)
@@ -82,7 +113,5 @@ if __name__ == "__main__":
     directory.mkdir(exist_ok=True)
     path = directory / f"compare_{datetime.now():%Y%m%d_%H%M%S_%f}.json"
     path.write_text(json.dumps(cases, ensure_ascii=False, indent=2), encoding="utf-8")
-    for item in cases:
-        print(item["row"], item["method"], item["status"], item["predicted"],
-              "API", item["api_requests"], "도구", item["tools"])
+    print_results(cases)
     print(path)
