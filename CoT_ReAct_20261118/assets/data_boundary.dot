@@ -1,5 +1,0 @@
-digraph G { graph [rankdir=TB,bgcolor="transparent",pad="0.2",nodesep="0.35",ranksep="0.35"]; node [shape=box,style="rounded,filled",fontname="Noto Sans CJK KR",fontsize=12,color="#aac5d3",fillcolor="#eff7fb",margin="0.16,0.10"]; edge [fontname="Noto Sans CJK KR",fontsize=10,color="#397e8b"];a[label="data/gsm8k_sample.json
-D04 · main/test · 원본 0~5번 행"]; b[label="app/core.py · load_records()
-question / answer 분리"]; c[label="build_prompt().invoke()
-question만 입력"]; d[label="공개 응답 또는 실제 계산 결과"]; e[label="main.py · make_result()
-실행 후 answer와 대조"]; a->b; b->c[label="question"]; c->d; d->e; b->e[label="answer는 사후 대조에만"];}
