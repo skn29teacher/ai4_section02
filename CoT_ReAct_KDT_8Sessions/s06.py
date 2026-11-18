@@ -44,7 +44,7 @@ def compare(row, remote, provider):
             case["status"] = "실행 중단"
             events.append(("오류", str(exc)))
         case["reference"] = row["answer"]
-        case["expected"] = float(row["answer"].split("####")[-1].strip())
+        case["expected"] = row["answer"].split("####")[-1].strip()
         case["tools"] = sum(label == "계산 도구 · 반환값" for label, _ in events)
         cases.append(case)
     return cases
