@@ -123,7 +123,9 @@ if __name__ == "__main__":
     parser.add_argument("--provider", choices=MODES, default="demo")
     args = parser.parse_args()
 
-    row = next(record for record in records() if record["row_index"] == args.row)
+    row = next(record for record in records() if record["row_index"] == args.row)    
+
+    
     print("실행 모드", args.provider)
     print("입력 질문", row["question"], sep="\n")
 
