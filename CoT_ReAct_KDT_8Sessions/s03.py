@@ -40,5 +40,5 @@ if __name__ == "__main__":
     remote = None if args.provider == "demo" else RemoteChat(args.provider, max_calls=2)
     row = records()[0]
     print("실행 모드", args.provider)
-    for method, messages in variants(row).items():
+    for method, messages in variants(row).items():        
         print(method, ask(row, method, messages, remote), sep="\n")
