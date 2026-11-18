@@ -229,7 +229,7 @@
 </table>
 <p><strong>내 실행 기록 읽기.</strong> 마지막에 출력된 <code>results/…html</code>을 연다. 첫 계산 요청과 바로 아래 도구 반환값을 찾고, 다음 계산 요청에 그 값이 어떻게 쓰였는지 확인한다. 모델에 따라 두 차감량을 먼저 더하는 등 연산 순서가 달라질 수 있다. 계산 기록 없이 최종 답만 나온 경우에는 도구 호출이 0회였다고 읽는다. 작성한 프롬프트, 입력값, 결과가 보이도록 화면을 캡처하거나 인쇄 메뉴에서 PDF로 저장한다.</p>
 <h3>실행을 지원하는 코드</h3>
-<p><code>providers.py</code>의 <code>RemoteChat</code>은 선택한 계정 설정을 읽는다. <code>prepare</code>는 대화 목록을 공급자별 HTTP 요청으로 바꾸고, <code>__call__</code>은 요청을 보낸다. <code>extract</code>가 응답에서 본문을 꺼내면 <code>chat(messages)</code>의 반환값이 된다. <code>lesson.py</code>의 <code>demo</code>는 같은 위치에서 대본을 반환한다. <code>save</code>는 각 기록의 줄바꿈을 보존해 HTML 파일에 쓰고 파일 경로를 반환한다.</p>
+<p><code>providers.py</code>의 <code>RemoteChat</code>은 선택한 계정 설정을 읽는다. <code>prepare</code>는 세 공급자에 같은 messages와 Bearer 인증 형식을 적용하고, <code>__call__</code>은 요청을 보낸다. <code>extract</code>가 choices[0].message.content에서 본문을 꺼내면 <code>chat(messages)</code>의 반환값이 된다. <code>lesson.py</code>의 <code>demo</code>는 같은 위치에서 대본을 반환한다. <code>save</code>는 각 기록의 줄바꿈을 보존해 HTML 파일에 쓰고 파일 경로를 반환한다.</p>
 <p><strong>중단된 경우.</strong> JSON 형식 오류가 나면 결과 파일의 마지막 모델 응답에서 코드 블록이나 설명이 섞였는지 확인하고 <code>REACT</code>의 출력 지시를 수정한다. HTTP 429는 계정 한도를 확인한 뒤 재실행한다. 오류 전까지 받은 응답은 같은 결과 파일에 남는다.</p></section><section id="s2"><small>KDT AI CAMP　 /　 U2-02　 ·　 2차시</small><h1>같은 질문에 두 가지 지시문 작성하기</h1><p><strong>질문은 그대로 두고 답을 요청하는 방식을 바꾼다.</strong> 1차시에서는 모델의 답과 계산기 기록을 함께 보았다. 이번에는 모델을 호출하기 직전에 멈춘다. 응답이 달라진 이유를 살펴보려면 우선 어떤 메시지를 보냈는지 확인해야 한다.</p>
 <h3>풀이 예시를 구성하는 세 요소</h3>
 <p>예시에는 문제, 중간 계산, 최종 답이 들어간다. “연필 10자루 중 4자루를 쓰고 두 사람에게 나눈다”에서 6자루는 남은 수량이고, 3자루는 각 사람의 몫이다. 단위를 적으면 두 숫자의 역할이 드러난다. 원 연구의 여러 예시를 이 실습에서는 한 개로 줄인다. <a href="https://arxiv.org/html/2201.11903v6">Wei 등, CoT 논문 2절</a></p>
@@ -345,7 +345,7 @@ python s02.py --row 3
 <tr>
 <td>gemini</td>
 <td>GEMINI_API_KEY, GEMINI_MODEL</td>
-<td>systemInstruction과 contents</td>
+<td>messages</td>
 </tr>
 <tr>
 <td>openai</td>
@@ -361,7 +361,7 @@ python s02.py --row 3
 <li><strong>15분</strong>　두 응답의 마지막 줄을 나란히 보고, 풀이에서 ‘9개’와 ‘18달러’가 어느 식에서 나왔는지 표시한다.</li>
 <li><strong>10분</strong>　<code>WORKED</code>에서 단위 지시만 바꾸고 같은 모델로 재실행한다. 표현이나 답이 바뀐 위치를 이전 출력과 대조한다. 한 번의 차이는 해당 실행의 관찰로 기록한다.</li>
 </ol>
-<p>공급자 요청 형식은 <a href="https://console.groq.com/docs/text-chat">Groq</a>, <a href="https://ai.google.dev/api/generate-content">Gemini</a>, <a href="https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create">OpenAI</a>의 채팅·텍스트 생성 문서에서 확인할 수 있다.</p>
+<p>공급자 요청 형식은 <a href="https://console.groq.com/docs/text-chat">Groq</a>, <a href="https://ai.google.dev/gemini-api/docs/openai">Gemini</a>, <a href="https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create">OpenAI</a>의 채팅·텍스트 생성 문서에서 확인할 수 있다.</p>
 <p><strong>이번 차시 원본</strong>　<a href="https://huggingface.co/datasets/openai/gsm8k/tree/main">D04 · openai/gsm8k, main/test</a> · 0번 행</p></section><section><small>KDT AI CAMP　 /　 U2-02　 ·　 3차시</small><h1>코드와 실행 기록</h1><pre><code class="language-python">def ask(row, method, messages, remote):
     if remote is None:
         return scripted(row, method, messages)
@@ -382,7 +382,7 @@ python s02.py --row 3
 </tr>
 <tr>
 <td>prepare(messages)</td>
-<td>주소, 인증 헤더, 전송할 JSON 본문을 만든다.</td>
+<td>BASE_URLS에서 주소를 고른다. 세 공급자 모두 Bearer 인증과 같은 messages를 사용한다.</td>
 </tr>
 <tr>
 <td><strong>call</strong>(messages)</td>
@@ -390,7 +390,7 @@ python s02.py --row 3
 </tr>
 <tr>
 <td>extract(data)</td>
-<td>응답 본문과 사용량을 분리한다. 호출자에게는 본문 문자열이 돌아간다.</td>
+<td>choices[0].message.content와 usage를 읽는다. 호출자에게는 본문 문자열이 돌아간다.</td>
 </tr>
 </tbody>
 </table>
