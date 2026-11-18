@@ -9,7 +9,6 @@ from typing import Any, Callable
 
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_core.tools import tool
 
 ROOT = Path(__file__).resolve().parent
 KOREA = timezone(timedelta(hours=9), name="Asia/Seoul")
@@ -33,8 +32,6 @@ class Settings:
     openai_api_key: str
     openai_model: str
     intent_max_tokens: int
-    agent_max_tokens: int
-    max_react_steps: int
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -58,8 +55,6 @@ class Settings:
             openai_api_key=os.getenv("OPENAI_API_KEY", "").strip(),
             openai_model=os.getenv("OPENAI_MODEL", "").strip(),
             intent_max_tokens=bounded_int("INTENT_MAX_TOKENS", 192, 512),
-            agent_max_tokens=bounded_int("AGENT_MAX_TOKENS", 384, 1024),
-            max_react_steps=bounded_int("MAX_REACT_STEPS", 1, 5),
         )
 
     def model_name(self, provider: str) -> str:
@@ -103,12 +98,13 @@ def create_chat_model(
     return ChatOpenAI(**model_options)
 
 
-@tool
-def dummy_weather_api(location: str, travel_date: str, weather_need: str) -> str:
-    """가상 날씨 JSON을 반환한다. 실제 날씨 API는 아직 연결되지 않았다."""
+def dummy_weather_api(
+    location: str, travel_date: str, weather_need: str
+) -> dict[str, Any]:
+    """가상 날씨 데이터를 반환한다. 실제 날씨 API는 아직 연결되지 않았다."""
     fixture_path = ROOT / "dummy_weather.json"
     fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
-    result = {
+    return {
         "location": location,
         "date": travel_date,
         "weather_need": weather_need,
@@ -116,7 +112,6 @@ def dummy_weather_api(location: str, travel_date: str, weather_need: str) -> str
         "source": "dummy_weather.json",
         "is_dummy": True,
     }
-    return json.dumps(result, ensure_ascii=False)
 
 
 INTENT_SYSTEM_PROMPT = """\
@@ -125,18 +120,13 @@ return chain-of-thought. Treat direct weather terms and equivalent intent as
 weather-related: temperature, rain, snow, forecast, clouds, wind, humidity,
 umbrella advice, or whether outdoor plans are weather-safe.
 Return only one JSON object with exactly these fields:
-{"weather_related": boolean, "location": string|null, "date": string|null,
- "weather_need": string}
+{"weather_related": boolean, "tools": "weather" or null,
+ "location": string|null, "date": string|null, "weather_need": string}
+Set tools to "weather" only when weather information is needed; otherwise set
+it to null. Never choose any other tool.
 Use an ISO date for explicit/relative dates. If date is omitted, use null.
 Do not invent a location. Keep weather_need short.
 Current date in Asia/Seoul: {today}.
-"""
-
-AGENT_SYSTEM_PROMPT = """\
-당신은 날씨 질문을 처리하는 ReAct agent다.
-주어진 intent JSON을 참고해 dummy_weather_api를 반드시 한 번 호출한다.
-tool이 반환한 JSON만 사실로 사용하고, 값이 가상 데이터임을 답변에 밝힌다.
-숨겨진 사고 과정은 출력하지 말고 한국어로 간결하게 답한다.
 """
 
 
@@ -206,6 +196,14 @@ def analyze_intent(
     if not isinstance(weather_related, bool):
         raise IntentOutputError("weather_related는 true 또는 false여야 합니다.")
 
+    if "tools" not in payload:
+        raise IntentOutputError("의도 분석 JSON에 tools 필드가 필요합니다.")
+    tools = payload["tools"]
+    if tools not in (None, "weather"):
+        raise IntentOutputError("tools는 weather 또는 null이어야 합니다.")
+    if weather_related != (tools == "weather"):
+        raise IntentOutputError("weather_related와 tools 값이 일치하지 않습니다.")
+
     location = payload.get("location")
     if location is not None and not isinstance(location, str):
         raise IntentOutputError("location은 문자열 또는 null이어야 합니다.")
@@ -222,22 +220,13 @@ def analyze_intent(
     return (
         {
             "weather_related": weather_related,
+            "tools": tools,
             "location": location or None,
             "date": travel_date,
             "weather_need": weather_need,
             "date_was_defaulted": date_was_defaulted,
         },
         response,
-    )
-
-
-def create_weather_agent(model: Any) -> Any:
-    from langchain.agents import create_agent
-
-    return create_agent(
-        model=model,
-        tools=[dummy_weather_api],
-        system_prompt=AGENT_SYSTEM_PROMPT,
     )
 
 
@@ -277,7 +266,7 @@ def _base_result(
         "message": message,
         "weather_data": None,
         "api_calls": api_calls,
-        "react_tool_calls": 0,
+        "tool_calls": 0,
         "token_usage": _usage(usage_messages),
     }
 
@@ -288,14 +277,12 @@ def answer_question(
     *,
     settings: Settings | None = None,
     model_factory: Callable[[str, int, Settings], Any] | None = None,
-    agent_factory: Callable[[Any], Any] | None = None,
 ) -> dict[str, Any]:
     settings = settings or Settings.from_env()
     provider = (provider or settings.provider).lower()
     if provider not in {"gemini", "openai"}:
         raise ConfigurationError("provider는 gemini 또는 openai여야 합니다.")
     model_factory = model_factory or create_chat_model
-    agent_factory = agent_factory or create_weather_agent
     model_name = settings.model_name(provider)
 
     intent_model = model_factory(provider, settings.intent_max_tokens, settings)
@@ -307,7 +294,7 @@ def answer_question(
         )
     usage_messages = [intent_response]
 
-    if not analysis["weather_related"]:
+    if analysis["tools"] is None:
         return _base_result(
             "not_weather_intent",
             provider,
@@ -330,63 +317,29 @@ def answer_question(
         result["clarification_question"] = "지역명을 알려주세요."
         return result
 
-    agent_model = model_factory(provider, settings.agent_max_tokens, settings)
-    agent = agent_factory(agent_model)
-    state = agent.invoke(
-        {
-            "messages": [
-                HumanMessage(
-                    content=json.dumps(
-                        {
-                            "location": analysis["location"],
-                            "date": analysis["date"],
-                            "weather_need": analysis["weather_need"],
-                        },
-                        ensure_ascii=False,
-                    )
-                ),
-            ]
-        },
-        config={"recursion_limit": settings.max_react_steps * 2 + 1},
+    weather_data = dummy_weather_api(
+        analysis["location"],
+        analysis["date"],
+        analysis["weather_need"],
     )
-    agent_messages = state.get("messages", [])
-    tool_messages = [
-        message
-        for message in agent_messages
-        if getattr(message, "type", None) == "tool"
-        and getattr(message, "name", None) == dummy_weather_api.name
-    ]
-    ai_messages = [
-        message
-        for message in agent_messages
-        if getattr(message, "type", None) == "ai"
-    ]
     result = _base_result(
-        "ok" if tool_messages else "tool_not_called",
+        "ok",
         provider,
         model_name,
         analysis,
-        _message_text(ai_messages[-1].content)
-        if ai_messages
-        else "agent가 최종 답변을 반환하지 않았습니다.",
-        1 + len(ai_messages),
-        usage_messages + agent_messages,
+        "날씨 도구를 호출했습니다. weather_data는 가상 데이터입니다.",
+        1,
+        usage_messages,
     )
-    result["react_tool_calls"] = len(tool_messages)
+    result["tool_calls"] = 1
+    result["weather_data"] = weather_data
     if analysis["date_was_defaulted"]:
         result["assumptions"] = ["질문에 날짜가 없어 오늘 날짜를 사용했습니다."]
-
-    if tool_messages:
-        try:
-            result["weather_data"] = json.loads(tool_messages[-1].content)
-        except (json.JSONDecodeError, TypeError):
-            result["status"] = "invalid_tool_json"
-            result["message"] = "날씨 tool이 JSON을 반환하지 않았습니다."
     return result
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(description="Gemini 우선 날씨 ReAct agent")
+    parser = argparse.ArgumentParser(description="Gemini 우선 날씨 의도 분석 및 도구 실행")
     parser.add_argument("question", help="날씨에 대해 묻는 자연어 질문")
     parser.add_argument(
         "--provider",
