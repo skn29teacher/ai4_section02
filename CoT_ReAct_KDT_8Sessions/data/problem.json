@@ -4,6 +4,6 @@
   "config": "main",
   "split": "test",
   "row_index": 0,
-  "question": "Janet’s ducks lay 16 eggs per day. She eats three for breakfast every morning and bakes muffins for her friends every day with four. She sells the remainder at the farmers' market daily for $2 per fresh duck egg. How much in dollars does she make every day at the farmers' market?",
-  "answer": "Janet sells 16 - 3 - 4 = <<16-3-4=9>>9 duck eggs a day.\nShe makes 9 * 2 = $<<9*2=18>>18 every day at the farmer’s market.\n#### 18"
+  "question": "자넷이 키우는 오리들은 하루에 알을 16개씩 낳습니다. 자넷은 매일 아침 식사로 달걀 3개를 먹고, 친구들에게 나누어 줄 머핀을 만들기 위해 매일 달걀 4개를 사용합니다. 나머지 달걀은 매일 농산물 시장에서 개당 2달러에 판매합니다. 자넷이 하루 동안 농산물 시장에서 벌어들이는 돈은 총 얼마입니까?",
+  "answer": "자넷이 하루에 판매하는 달걀은 16 - 3 - 4 = <<16-3-4=9>>9개입니다.\n하루 판매 수익은 9 * 2 = $<<9*2=18>>18입니다.\n#### 18"
 }

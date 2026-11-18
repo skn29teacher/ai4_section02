@@ -19,8 +19,9 @@ def variants(row):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--row", choices=[0, 3], type=int, default=0)
-    args = parser.parse_args()
-    row = next(r for r in records() if r["row_index"] == args.row)
+    args = parser.parse_args()    
+
+    row = next(r for r in records() if r["row_index"] == args.row)      
     for name, messages in variants(row).items():
         print(name)
         for message in messages:
