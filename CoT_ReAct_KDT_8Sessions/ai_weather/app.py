@@ -56,7 +56,7 @@ class Settings:
             openai_api_key=os.getenv("OPENAI_API_KEY", "").strip(),
             openai_model=os.getenv("OPENAI_MODEL", "").strip(),
             intent_max_tokens=bounded_int("INTENT_MAX_TOKENS", 192, 512),
-            final_max_tokens=bounded_int("FINAL_MAX_TOKENS", 384, 1024),
+            final_max_tokens=bounded_int("FINAL_MAX_TOKENS", 1024, 1024),
         )
 
     def model_name(self, provider: str) -> str:
@@ -97,6 +97,8 @@ def create_chat_model(
     }
     if base_url:
         model_options["base_url"] = base_url
+    elif model.lower().startswith("gpt-5"):
+        model_options["reasoning_effort"] = "minimal"
     return ChatOpenAI(**model_options)
 
 
@@ -180,7 +182,15 @@ def _generate_final_answer(
     )
     answer = _message_text(response.content).strip()
     if not answer:
-        raise RuntimeError("OpenAI 최종 답변이 비어 있습니다.")
+        metadata = getattr(response, "response_metadata", None) or {}
+        usage = getattr(response, "usage_metadata", None) or {}
+        output_details = usage.get("output_token_details", {})
+        raise RuntimeError(
+            "OpenAI 최종 답변이 비어 있습니다 "
+            f"(finish_reason={metadata.get('finish_reason')}, "
+            f"output_tokens={usage.get('output_tokens')}, "
+            f"reasoning_tokens={output_details.get('reasoning')})."
+        )
     return answer, response
 
 

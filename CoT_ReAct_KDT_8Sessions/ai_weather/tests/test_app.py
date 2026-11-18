@@ -11,6 +11,7 @@ from app import (
     analyze_intent,
     create_chat_model,
     dummy_weather_api,
+    _generate_final_answer,
 )
 
 
@@ -20,7 +21,7 @@ def make_settings() -> Settings:
         gemini_api_key="test-key",
         gemini_model="test-gemini",
         openai_api_key="test-openai-key",
-        openai_model="test-openai",
+        openai_model="gpt-5-nano",
         intent_max_tokens=128,
         final_max_tokens=256,
     )
@@ -83,13 +84,38 @@ class AppTests(unittest.TestCase):
         self.assertEqual(
             openai_model.kwargs,
             {
-                "model": "test-openai",
+                "model": "gpt-5-nano",
                 "api_key": "test-openai-key",
                 "max_tokens": 256,
                 "max_retries": 0,
+                "reasoning_effort": "minimal",
             },
         )
         self.assertEqual(len(created_models), 2)
+
+    def test_empty_openai_answer_reports_finish_reason_and_reasoning_usage(self):
+        class EmptyResponseModel:
+            def invoke(self, messages):
+                return SimpleNamespace(
+                    content="",
+                    response_metadata={"finish_reason": "length"},
+                    usage_metadata={
+                        "output_tokens": 384,
+                        "output_token_details": {"reasoning": 384},
+                    },
+                )
+
+        with self.assertRaisesRegex(
+            RuntimeError,
+            "finish_reason=length, output_tokens=384, reasoning_tokens=384",
+        ):
+            _generate_final_answer(
+                "오늘 점심메뉴 추천해줘",
+                "direct_answer",
+                {"weather_related": False, "tools": None},
+                None,
+                EmptyResponseModel(),
+            )
 
     def test_openai_final_answer_key_is_required_before_intent_request(self):
         settings = make_settings()

@@ -50,6 +50,7 @@ Copy-Item .env.example .env
 - Gemini가 기본 intent provider입니다. intent 분석 실패를 OpenAI로 재시도하지는 않지만, 정상 분류된 질문에는 최종 답변용 OpenAI 호출이 항상 발생합니다.
 - intent 응답 길이는 `INTENT_MAX_TOKENS`로 제한합니다.
 - OpenAI 최종 답변 길이는 `FINAL_MAX_TOKENS`로 제한합니다.
+- `gpt-5` 계열 모델은 reasoning token이 답변 예산을 소진하지 않도록 `reasoning_effort=minimal`로 호출합니다.
 - 날씨와 무관한 질문은 JSON 분류 뒤 날씨 함수를 호출하지 않습니다.
 
 ## 테스트
