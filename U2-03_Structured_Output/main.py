@@ -98,6 +98,10 @@ def diagnose(row):
     return result
 
 
+import os
+from dotenv import load_dotenv
+load_dotenv('.env',override=True)
+
 def call_api(provider, prompt, schema_type, mode, report):
     key = os.getenv(provider.upper() + "_API_KEY")
     if not key:
