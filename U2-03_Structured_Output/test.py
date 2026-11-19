@@ -17,14 +17,18 @@ class MyClass(BaseModel):
     name :str
     age : int
 
-# print(MyClass.model_json_schema())    
+print(MyClass.model_json_schema())     #####
 obj = MyClass(name='abc',age=22)
-obj_model_dump = obj.model_dump()
+
+obj_model_dump = obj.model_dump()  #####
+
 del obj_model_dump['name']
 print(obj_model_dump)
 
 try:
-    MyClass.model_validate(obj_model_dump)
+
+    MyClass.model_validate(obj_model_dump)  #####
+
 except ValueError as err:
     print(err.errors())    
 
