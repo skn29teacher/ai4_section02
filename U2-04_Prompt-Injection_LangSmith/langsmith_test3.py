@@ -17,9 +17,10 @@ DEFENSIVE_SYSTEM_PROMPT = """당신은 계산 보조 에이전트입니다.
 """
 
 
-@tool
+# 함수의 이름, 타입힌트(파라메터/변환형) Docstring(설명문자열)
+@tool #일반 파이썬 함수를 LLM이 이해하고 호출할 수 있도록 도구로 변환
 def multiply(a: float, b: float) -> float:
-    """두 숫자를 곱합니다. (예: 단가 * 수량)"""
+    """두 숫자를 곱합니다. (예: 단가 * 수량)"""  # Docstring
     return a * b
 
 
@@ -38,11 +39,10 @@ def convert_currency(amount_krw: float, exchange_rate: float = 1380.0) -> float:
         raise ValueError(f"비정상적인 환율 값입니다: {exchange_rate}")
     return round(amount_krw / exchange_rate, 2)
 
-
 TOOLS = [multiply, apply_discount, convert_currency]
 TOOLS_BY_NAME = {t.name: t for t in TOOLS}
 
-
+# 함수호출시 입출력 실행시간 하위 호출구조 에러등 LangSmith에게 자동 기록(트레이싱)하도록 만들어줌
 @traceable(name="defensive_agent_run", run_type="chain")
 def run_agent(user_query: str, scenario_tag: str = "experiment") -> str:
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
