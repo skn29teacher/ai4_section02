@@ -8,8 +8,18 @@ load_dotenv('.env', override=True)
 
 @tool
 def multiply(a:int, b:int)->int:
-    '''두 정수를 곱합니다.'''
+    '''두 정수를 곱합니다.(단가 x 수량)'''
     return a * b
+
+@tool
+def discount(amount:float, discount_rate:float)->float:
+    '''금액(amount)에 할인율(discount_rate)을 적용한 최종금액을 반환한다
+    예) discount_rate은 10%할인은 0.1이다
+    '''
+    return round(amount*(1-discount_rate),2)
+
+
+tools_by_name = {'multiply' : multiply, 'discount':discount}
 
 llm = ChatOpenAI(model='gpt-4o-mini',temperature=0)
 llm_with_tools = llm.bind_tools([multiply])
@@ -35,4 +45,8 @@ for step in range(max_steps):
         print('최종답변\n',ai_msg.content)
         break
     print(f"[Step {step + 1} 요청된 도구의수 : {len(ai_msg.tool_calls)}]")
-    
+    for tool_call in ai_msg.tool_calls:
+        tool_name = tool_call['name']
+        tool_args = tool_call['args']
+
+
