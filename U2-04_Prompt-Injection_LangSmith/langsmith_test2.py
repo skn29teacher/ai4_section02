@@ -18,11 +18,15 @@ def discount(amount:float, discount_rate:float)->float:
     '''
     return round(amount*(1-discount_rate),2)
 
+@tool
+def convert_currency(amount_krw:float, exchange_rate:float = 1300.0) ->float:
+    '''원화(krw)금액을 환율(exchange_rate)기준으로 usd로 변환'''
+    return round(amount_krw / exchange_rate,2)
 
 tools_by_name = {'multiply' : multiply, 'discount':discount}
 
 llm = ChatOpenAI(model='gpt-4o-mini',temperature=0)
-llm_with_tools = llm.bind_tools([multiply])
+llm_with_tools = llm.bind_tools([multiply,discount,convert_currency])
 
 message = [
     SystemMessage(
