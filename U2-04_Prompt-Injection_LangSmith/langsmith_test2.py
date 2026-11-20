@@ -48,5 +48,12 @@ for step in range(max_steps):
     for tool_call in ai_msg.tool_calls:
         tool_name = tool_call['name']
         tool_args = tool_call['args']
+        selected_tool = tools_by_name[tool_name]
+        result = selected_tool.invoke(tool_args)
+        print(f'    - 실행:{tool_name}({tool_args}) -> {result}')
+
+        message.append(
+            ToolMessage(content=str(result),tool_call_id = tool_call["id"])
+        )
 
 
