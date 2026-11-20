@@ -36,7 +36,7 @@ def multiply(a: float, b: float) -> float:
 
 
 @tool
-def apply_discount(amount: float, discount_rate: float) -> float:
+def apply_discount(amount: float, discount_rate: float = 0.1) -> float:
     """금액(amount)에 할인율(0.0~0.5)을 적용합니다."""
     if not (0.0 <= discount_rate <= 0.5):
         raise ValueError(f"할인율 {discount_rate}는 허용 범위(0.0~0.5)를 벗어났습니다.")
@@ -57,7 +57,7 @@ TOOLS_BY_NAME = {t.name: t for t in TOOLS}
 
 @traceable(name="capstone_agent_run", run_type="chain")
 def run_capstone_agent(user_query: str, tag: str = "capstone") -> str:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-5-nano", temperature=0)
     llm_with_tools = llm.bind_tools(TOOLS)
 
     messages = [
