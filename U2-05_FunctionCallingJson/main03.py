@@ -90,3 +90,13 @@ CLEAR_SCHEMA = [
     }
 ]
 
+def test_schema(label:str, schema:list, prompt:str)->None:
+    res = client.chat.completions.create(
+        model='gpt-4o-mini',
+        temperature=0,
+        messages=[{'role':'user','content':prompt}]
+    )
+    msg = res.choices[0].message
+    raw_rags = msg.tool_calls[0].function.arguments if msg.tool_calls else "{}"
+    print(f'{label}추출 인자 : {raw_rags}')
+    
