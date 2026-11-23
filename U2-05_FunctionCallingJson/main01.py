@@ -87,7 +87,11 @@ def run_tool_loop(user_prompt: str) -> str:
         result = available_functions[func_name](**func_args)
         print(f"[함수 실행] {func_name}({func_args}) -> {result}")
         # [3단계] tool 역할 메시지를 추가해 모델에게 실행 결과 전달
-        # TODO 4: role="tool", tool_call_id, content(문자열) 형태로 messages에 append 하세요.
+        messages.append({
+            "role": "tool",
+            "tool_call_id": tool_call.id,
+            "content": json.dumps(result, ensure_ascii=False),
+        })
 
     # [4단계] 도구 실행 결과가 반영된 messages로 2차 호출해 최종 답변 생성
     final_response = client.chat.completions.create(
