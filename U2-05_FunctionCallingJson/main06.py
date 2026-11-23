@@ -45,7 +45,7 @@ TOOLS = [
     }
 ]
 
-
+# 50,000원 상품에 할인율 0.8을 적용해줘.
 def run_with_self_correction(user_query: str, max_steps: int = 5) -> str:
     messages = [
         {
@@ -57,8 +57,9 @@ def run_with_self_correction(user_query: str, max_steps: int = 5) -> str:
         },
         {"role": "user", "content": user_query},
     ]
-
+    
     for step in range(1, max_steps + 1):
+        print('step :',step)
         res = client.chat.completions.create(
             model="gpt-4o-mini",
             temperature=0,
@@ -66,13 +67,14 @@ def run_with_self_correction(user_query: str, max_steps: int = 5) -> str:
             tools=TOOLS,
         )
         msg = res.choices[0].message
+        print('msg.tool_calls :',msg.tool_calls)
         if not msg.tool_calls:
             return msg.content or ""
 
         messages.append(msg)
         for call in msg.tool_calls:
             try:
-                args = json.loads(call.function.arguments)
+                args = json.loads(call.function.arguments)                
                 result = apply_policy_discount(**args)
                 payload = json.dumps(result, ensure_ascii=False)
                 print(f"  [Step {step}] 성공: {call.function.name}({args}) -> {payload}")
