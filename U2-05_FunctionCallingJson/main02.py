@@ -100,3 +100,11 @@ def run_pure_openai_sdk(user_prompt: str) -> str:
         tools=tools,
     )
     return final_response.choices[0].message.content or ""
+
+
+if __name__ == "__main__":    
+    print("질문:", QUERY)
+    print("-" * 60)
+    answer = run_pure_openai_sdk(QUERY)
+    print("-" * 60)
+    print("최종 답변:\n", answer)
