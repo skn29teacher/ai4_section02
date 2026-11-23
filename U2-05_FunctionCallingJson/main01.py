@@ -78,18 +78,14 @@ def run_tool_loop(user_prompt: str) -> str:
         return assistant_msg.content or ""
 
     # [2단계] 모델이 생성한 assistant 메시지(tool_calls 포함)를 대화 이력에 추가
-    # TODO 1: assistant_msg를 messages 리스트에 append 하세요.
+    messages.append(assistant_msg)
+    
 
     for tool_call in assistant_msg.tool_calls:
         func_name = tool_call.function.name
-        # TODO 2: tool_call.function.arguments (JSON 문자열)을 dict로 파싱하세요.
-        func_args = {}
-
-        # TODO 3: available_functions에서 함수를 찾아 실행하고 결과를 구하세요.
-        result = None
-
+        func_args = json.loads(tool_call.function.arguments)        
+        result = available_functions[func_name](**func_args)
         print(f"[함수 실행] {func_name}({func_args}) -> {result}")
-
         # [3단계] tool 역할 메시지를 추가해 모델에게 실행 결과 전달
         # TODO 4: role="tool", tool_call_id, content(문자열) 형태로 messages에 append 하세요.
 
