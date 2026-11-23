@@ -102,6 +102,36 @@ def run_pure_openai_sdk(user_prompt: str) -> str:
     return final_response.choices[0].message.content or ""
 
 
+################################################################################
+# 방식2 LangChain (@tool + bind_tools) : 스키마자동변환 + dict args + ToolMessage
+################################################################################
+@tool
+def calculate_shipping_fee_lc(weight_kg:float, is_express:bool=False)->dict:
+    '''택배 무게(kg)와 빠른 배송여부로 배송비를 계산합니다.'''
+    return calculate_shipping_fee(weight_kg,is_express)
+
+def run_langchain_bind_tools(query:str)->str:
+    llm = ChatOpenAI(model='gpt-4o-mini',temperature=0)
+    llm_with_tools =  llm.bind_tools(calculate_shipping_fee_lc)
+    tool_map = {"calculate_shipping_fee_lc":calculate_shipping_fee_lc}
+    messages = [
+        SystemMessage(content="배송비 계산이 필요하면 도구를 호출하세요"),
+        HumanMessage(content=query)
+    ]
+    # 1차 호출(모델이 도구를 호출하는 단계) 만약에 도구를 호출안하면 이 응답이 최종 응답이됨
+    ai_msg= llm_with_tools.invoke(messages)
+    if not ai_msg.tool_calls:
+        return ai_msg.content
+
+    messages.append(ai_msg)
+    # 2차 도구의 실행결과를 이전메세지에 추가
+    for call in ai_msg.tool_calls:
+        args_dict = call['args']
+        tool_result = tool_map[call['name']].invoke(args_dict)  # calculate_shipping_fee_lc(args_dict)
+        
+
+
+
 if __name__ == "__main__":    
     print("질문:", QUERY)
     print("-" * 60)
