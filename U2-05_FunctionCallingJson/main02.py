@@ -128,7 +128,16 @@ def run_langchain_bind_tools(query:str)->str:
     for call in ai_msg.tool_calls:
         args_dict = call['args']
         tool_result = tool_map[call['name']].invoke(args_dict)  # calculate_shipping_fee_lc(args_dict)
-        
+        # ToolMessage 객체로 전달
+        messages.append(
+            ToolMessage(
+                content=json.dumps(tool_result,ensure_ascii=False),
+                tool_call_id  = call['id'],
+            )
+        )
+    #3 2차호출 : ToolMessage 포함해 최종 답변 생성
+    final_msg = llm_with_tools.invoke(messages)
+    return final_msg.content
 
 
 
