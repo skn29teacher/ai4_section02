@@ -142,8 +142,13 @@ def run_langchain_bind_tools(query:str)->str:
 
 
 if __name__ == "__main__":    
-    print("질문:", QUERY)
-    print("-" * 60)
-    answer = run_pure_openai_sdk(QUERY)
-    print("-" * 60)
+    print("순수 SDK 방식")    
+    answer = run_pure_openai_sdk(QUERY)    
     print("최종 답변:\n", answer)
+    print('='*100)
+
+    print("langchain bind tools 방식")    
+    answer = run_langchain_bind_tools(QUERY)    
+    print("최종 답변:\n", answer)
+    print('='*100)
+
