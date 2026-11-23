@@ -89,5 +89,6 @@ def run_parallel_demo(query: str) -> str:
 
 
 if __name__ == "__main__":
-    ans = run_parallel_demo("SKU-101 가격, SKU-202 가격, 그리고 USD 환율을 한꺼번에 알려줘.")
+    # ans = run_parallel_demo("SKU-101 가격, SKU-202 가격, 그리고 USD 환율을 한꺼번에 알려줘.")
+    ans = run_parallel_demo("정수기의 동작원리에 대해서 알려줘")
     print("\n최종 답변:\n", ans)
