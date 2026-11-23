@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 load_dotenv('.env',override=True)
+client = OpenAI(model='gpt-4o-mini')
+
 
 #1.실제 실행될 함수(모델은 이 함수의 존재와 구현을 모름)
 def calculate_shipping_fee(weight_kg:float, is_express: bool = False)->dict:
