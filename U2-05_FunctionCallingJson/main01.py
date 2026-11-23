@@ -10,7 +10,7 @@ from openai import OpenAI
 load_dotenv('.env',override=True)
 
 #1.실제 실행될 함수(모델은 이 함수의 존재와 구현을 모름)
-def calculate_shipping_free(weight_kg:float, is_express: bool = False)->dict:
+def calculate_shipping_fee(weight_kg:float, is_express: bool = False)->dict:
     """택배 무개와 당일/빠른 배송 여부를 받아 예상 배송비를 계산"""
     base_fee = 3000 if weight_kg <=3.0 else 3000+(weight_kg-3.0)*1000
     express_fee = 2500 if is_express else 0
@@ -44,3 +44,67 @@ tools = [
     },
 }    
 ]
+available_functions = {
+    'calculate_shipping_fee':calculate_shipping_fee,
+}
+
+def run_tool_loop(user_prompt: str) -> str:
+    messages = [
+        {
+            "role": "system",
+            "content": "당신은 배송비 안내 어시스턴트입니다. 배송비 계산이 필요하면 제공된 도구를 사용하세요.",
+        },
+        {"role": "user", "content": user_prompt},
+    ]
+
+    # [1단계] 사용자 질문 + tools 명세를 모델에 전송
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        temperature=0,
+        messages=messages,
+        tools=tools,
+    )
+
+    assistant_msg = response.choices[0].message
+    finish_reason = response.choices[0].finish_reason
+    print(f"[1차 응답] finish_reason = {finish_reason}")
+    print(f"[1차 응답] content = {assistant_msg.content!r}")
+    print(f"[1차 응답] tool_calls = {assistant_msg.tool_calls}")
+
+    # 도구 호출이 없으면 바로 답변 반환
+    if not assistant_msg.tool_calls:
+        return assistant_msg.content or ""
+
+    # [2단계] 모델이 생성한 assistant 메시지(tool_calls 포함)를 대화 이력에 추가
+    # TODO 1: assistant_msg를 messages 리스트에 append 하세요.
+
+    for tool_call in assistant_msg.tool_calls:
+        func_name = tool_call.function.name
+        # TODO 2: tool_call.function.arguments (JSON 문자열)을 dict로 파싱하세요.
+        func_args = {}
+
+        # TODO 3: available_functions에서 함수를 찾아 실행하고 결과를 구하세요.
+        result = None
+
+        print(f"[함수 실행] {func_name}({func_args}) -> {result}")
+
+        # [3단계] tool 역할 메시지를 추가해 모델에게 실행 결과 전달
+        # TODO 4: role="tool", tool_call_id, content(문자열) 형태로 messages에 append 하세요.
+
+    # [4단계] 도구 실행 결과가 반영된 messages로 2차 호출해 최종 답변 생성
+    final_response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        temperature=0,
+        messages=messages,
+        tools=tools,
+    )
+    return final_response.choices[0].message.content or ""
+
+
+if __name__ == "__main__":
+    query = "4.5kg짜리 상자를 빠른 배송으로 보내면 배송비가 얼마인가요?"
+    print("질문:", query)
+    print("-" * 60)
+    answer = run_tool_loop(query)
+    print("-" * 60)
+    print("최종 답변:\n", answer)
