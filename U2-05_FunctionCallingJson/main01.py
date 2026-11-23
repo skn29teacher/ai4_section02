@@ -5,10 +5,10 @@
 import json
 import os
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import OpenAI  # from langchain_openai import ChatOpenAI
 
 load_dotenv('.env',override=True)
-client = OpenAI(model='gpt-4o-mini')
+client = OpenAI()
 
 
 #1.실제 실행될 함수(모델은 이 함수의 존재와 구현을 모름)
