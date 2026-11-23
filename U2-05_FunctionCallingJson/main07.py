@@ -60,7 +60,7 @@ def call_gemini_native(prompt: str) -> None:
         tools=[types.Tool(function_declarations=[fn_decl])],
     )
     res = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model='gemini-3.8-flash',
         contents=prompt,
         config=config,
     )
