@@ -112,7 +112,7 @@ def calculate_shipping_fee_lc(weight_kg:float, is_express:bool=False)->dict:
 
 def run_langchain_bind_tools(query:str)->str:
     llm = ChatOpenAI(model='gpt-4o-mini',temperature=0)
-    llm_with_tools =  llm.bind_tools(calculate_shipping_fee_lc)
+    llm_with_tools =  llm.bind_tools([calculate_shipping_fee_lc])
     tool_map = {"calculate_shipping_fee_lc":calculate_shipping_fee_lc}
     messages = [
         SystemMessage(content="배송비 계산이 필요하면 도구를 호출하세요"),
@@ -151,4 +151,3 @@ if __name__ == "__main__":
     answer = run_langchain_bind_tools(QUERY)    
     print("최종 답변:\n", answer)
     print('='*100)
-
