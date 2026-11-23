@@ -25,13 +25,16 @@ WEAK_SHEMA=[
             'name':'estimate_cloud_cost',
             'description':'비용계산',
             'parameters':{
-                'instance_size':{'type':'string'},
-                'hours':{'type':'integer'},
-                'region':{'type':'string'},
-            },
-            'required':['instance_size','hours']
-        }
-    }
+                'type':'object',
+                'properties':{
+                    'instance_size':{'type':'string'},
+                    'hours':{'type':'integer'},
+                    'region':{'type':'string'},
+                },
+                'required':['instance_size','hours']            
+            },            
+        },
+    },
 ]
 
 # 명시적 스키마 (Clear Schema)
@@ -94,9 +97,14 @@ def test_schema(label:str, schema:list, prompt:str)->None:
     res = client.chat.completions.create(
         model='gpt-4o-mini',
         temperature=0,
-        messages=[{'role':'user','content':prompt}]
+        messages=[{'role':'user','content':prompt}],
+        tools=schema
     )
     msg = res.choices[0].message
     raw_rags = msg.tool_calls[0].function.arguments if msg.tool_calls else "{}"
     print(f'{label}추출 인자 : {raw_rags}')
-    
+
+if __name__ == "__main__":
+    prompt = "서울 리전에서 소형 서버를 2일 동안 돌리면 비용이 얼마인가요?"
+    test_schema('모호한 스키마',WEAK_SHEMA,prompt)
+    test_schema('명시적 스키마',CLEAR_SCHEMA,prompt)
