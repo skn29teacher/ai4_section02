@@ -31,8 +31,8 @@ if __name__ == "__main__":
     print(json.dumps(DiscountInput.model_json_schema(),indent=2,ensure_ascii=False))
 
     print("\n=== @tool(args_schema=DiscountInput)가 생성한 tool_call_schema ===")
-    json.dumps(calc_discounted_price.tool_call_schema.model_json_schema(), indent=2,
-               ensure_ascii=False)
+    print(json.dumps(calc_discounted_price.tool_call_schema.model_json_schema(), indent=2,
+               ensure_ascii=False))
 
     print("\n실제 도구 실행 테스트")
     calc_discounted_price.invoke({"amount":50000,"discount_rate":0.2})
