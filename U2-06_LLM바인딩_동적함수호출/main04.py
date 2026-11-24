@@ -32,17 +32,15 @@ if __name__ == "__main__":
     print(json.dumps(create_backup_plan.args_schema.model_json_schema(), indent=2, ensure_ascii=False))
 
     # chatopenai 객체생성
-    llm = ''
-
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools([create_backup_plan])
     query = "로그 DB를 zstd 압축으로 30일 보관하게 백업 계획 잡아줘."
-
     # humanmessage를 이용해서 ai_msg 생성
-    ai_msg = ''
+    ai_msg = llm.invoke([HumanMessage(content=query)])
     print("동적 추출된 args:", ai_msg.tool_calls)
 
     for call in ai_msg.tool_calls:
         # call이 가지고 있는 함수를 실행해서 
-        res = ''
-        t_msg = # ToolMessage(  ) 사용해서 채우기
-        final_msg = ''
+        res = create_backup_plan.invoke(call["args"])
+        t_msg = ToolMessage(content=json.dumps(res, ensure_ascii=False), tool_call_id=call["id"])
+        final_msg = llm.invoke([HumanMessage(content=query), ai_msg, t_msg])
         print("최종 답변:\n", final_msg.content)
