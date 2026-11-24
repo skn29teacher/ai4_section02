@@ -29,15 +29,16 @@ def run_with_choice(query: str, tool_choice: str = "auto") -> str:
     ai_msg = llm.invoke(messages)
     messages.append(ai_msg)
 
+    if not ai_msg.tool_calls:
+        return ai_msg.content
+
     print(f"[5차시 | tool_choice={tool_choice}] tool_calls 개수: {len(ai_msg.tool_calls)}")
     for call in ai_msg.tool_calls:
         out = registry[call["name"]].invoke(call["args"])
         print(f"  -> {call['name']}({call['args']}) => {out}")
         messages.append(ToolMessage(content=json.dumps(out, ensure_ascii=False), tool_call_id=call["id"]))
-
-    if ai_msg.tool_calls:
-        return llm.invoke(messages).content
-    return ai_msg.content
+    
+    return llm.invoke(messages).content
 
 
 if __name__ == "__main__":
