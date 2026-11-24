@@ -23,8 +23,7 @@ if __name__ =='__main__':
     print('도구설명',calc_sla_penalty.description)
     print('자동생성 JSON Schema : ')
     print(  json.dumps(calc_sla_penalty.args_schema.model_json_schema(),
-                    #    indent=2,
-                    #    ensure_ascii=False
+                       indent=2,
+                       ensure_ascii=False
                        )
-        )
-    
+        ) 
