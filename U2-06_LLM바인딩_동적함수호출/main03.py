@@ -1,3 +1,4 @@
+# 레지스터리 기반 동적 함수 디스페쳐
 import json
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
@@ -25,6 +26,7 @@ def calc_overage_cost(overage_calls: int, unit_cost_krw: int = 50) -> dict:
     return {"overage_calls": safe_calls, "unit_cost_krw": unit_cost_krw, "overage_krw": safe_calls * unit_cost_krw}
 
 
+# 메인 실행 함수
 def execute_dynamic_agent(prompt: str, tools_list: list) -> str:
     # if/elif 분기 대신 이름 -> BaseTool 매핑 레지스트리 사용
     tool_registry = {t.name: t for t in tools_list}
@@ -34,3 +36,8 @@ def execute_dynamic_agent(prompt: str, tools_list: list) -> str:
         SystemMessage(content="쿼터 조회와 초과 과금 계산은 제공된 도구를 동적으로 호출해 처리하세요."),
         HumanMessage(content=prompt),
     ]
+
+    # 나머지 코드를 완성
+    # step1 : llm이 호출할수잇는 tools를 확보하고 그결과를 messages 저장
+    # step2 : tools 를 순환하면서 실제 tool을 호출해서 결과를 messages 저장(ToolMessages)
+    # step3 : 최종 저장된 messages를 이용해서 최종 답변 출력
