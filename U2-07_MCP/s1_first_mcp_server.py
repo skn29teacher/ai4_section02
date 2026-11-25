@@ -1,5 +1,5 @@
-from mcp.server.fastmcp import FastMCP
-mcp = FastMCP("MyHelper")
+from mcp.server.mcpserver import MCPServer
+mcp = MCPServer("MyHelper")
 
 # 외부에 노출할 도구 정의
 @mcp.tool()
