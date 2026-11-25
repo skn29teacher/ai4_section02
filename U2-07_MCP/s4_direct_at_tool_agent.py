@@ -59,4 +59,4 @@ def run_direct_tool_agent(query: str) -> str:
 
 
 if __name__ == "__main__":
-    print(run_direct_tool_agent("ORD-1001 주문 상태 알려주고, ORD-1002는 '중복 주문' 사유로 환불 접수해줘."))
+    print(run_direct_tool_agent("ORD_1001 주문 상태 알려주고, ORD_1002는 '중복 주문' 사유로 환불 접수해줘."))
