@@ -1,2 +1,3 @@
 mcp[cli]
 fastapi
+langchain_mcp_adapters
