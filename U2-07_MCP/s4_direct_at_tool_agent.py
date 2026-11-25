@@ -1,4 +1,7 @@
-# REST API를 Python @tool로 직접 래핑해 LLM 바인딩
+# REST API를 Python @tool로 직접 래핑해 LLM 바인딩 --> langchain  LCEL  chatopenai  & openai
+# systemmessage humanmessage toolmessage(id)
+# message(system, human) -> llm -> message추가 -> tools순환하면서 각 결과를 message추가(toolmessage)
+# 끝나면 마지막 메세지 -> llm
 
 import json
 import httpx
@@ -51,7 +54,7 @@ def run_direct_tool_agent(query: str) -> str:
         for call in ai_msg.tool_calls:
             out = registry[call["name"]].invoke(call["args"])
             print(f"  [@tool 직접 호출] {call['name']}({call['args']}) -> {out}")
-            messages.append(ToolMessage(content=json.dumps(out, ensure_ascii=False), tool_call_id=call["id"]))
+            messages.append(ToolMessage(content=json.dumps(out, ensure_ascii=False), tool_call_id=call["id"]))        
     return "반복 초과"
 
 
