@@ -1,3 +1,5 @@
+# REST API를 Python @tool로 직접 래핑해 LLM 바인딩
+
 import json
 import httpx
 from dotenv import load_dotenv
