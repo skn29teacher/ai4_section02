@@ -5,8 +5,8 @@ import uvicorn
 app = FastAPI(title="external order & inventory api")
 
 ORDERS = {
-    "ORD_1001":{'order-id':'ORD-1001', 'item':'big bag'},
-    "ORD_1002":{'order-id':'ORD-1002', 'item':'USB-C type'}
+    "ORD_1001":{'order-id':'ORD-1001', 'item':'big bag','amount_krw':100},
+    "ORD_1002":{'order-id':'ORD-1002', 'item':'USB-C type','amount_krw':200}
 }
 
 class RefundRequest(BaseModel):
