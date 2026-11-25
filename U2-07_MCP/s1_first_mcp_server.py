@@ -16,6 +16,8 @@ def check_server_env(service_name: str)->dict:
     key = service_name.lower()
     return {'servie':key, **envs.get(key)}
 
+
+# 터미널에서 mcp dev .\s1_first_mcp_server.py
 if __name__ == '__main__':
     # 기본 전송방식 stdio로 mcp 서버 실행(클라이언트가 서브프로세스로 호출)
     mcp.run(transport='stdio')
