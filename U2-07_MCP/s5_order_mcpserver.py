@@ -1,7 +1,7 @@
 import httpx
 from mcp.server.mcpserver import MCPServer
 mcp = MCPServer("OrderManageMCP")
-BASE_URL = "https://127.0.0.1:8000"
+BASE_URL = "http://127.0.0.1:8000"
 
 @mcp.tool()
 def mcp_get_order(order_id:str)->dict:
@@ -17,7 +17,7 @@ def submit_refund_via_rest(order_id: str, reason: str) -> dict:
         json={"order_id": order_id, "reason": reason},
         timeout=5.0,
     )
-    return resp.json() if resp.status_code == 200 {"error": resp.text}  
+    return resp.json() if resp.status_code == 200 else {"error": resp.text}  
 
 # 2. MCP Resource: 클라이언트/모델이 참고할 정책 문서
 @mcp.resource("policy://refund-rules")
