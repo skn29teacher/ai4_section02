@@ -1,5 +1,8 @@
+# mcp 세션 + LLM API  + 외부 API 연동 결합된 에이전트
+
 import asyncio
 import sys
+from pathlib import Path
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage,SystemMessage,ToolMessage
 from langchain_mcp_adapters.tools import load_mcp_tools
@@ -7,12 +10,13 @@ from langchain_openai import ChatOpenAI
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-load_dotenv('.env',override=True)
+SCRIPT_DIR = Path(__file__).resolve().parent
+load_dotenv(SCRIPT_DIR / ".env", override=True)
 
 async def run_mcp_llm_agent(user_query:str)->str:
     server_params =  StdioServerParameters(
         command=sys.executable,
-        args = ['s5_order_mcpserver.py'],
+        args=[str(SCRIPT_DIR / "s5_order_mcpserver.py")],
     )
     async with stdio_client(server_params) as (read_stream, write_stream):
         async with ClientSession(read_stream,write_stream) as session:
@@ -41,5 +45,5 @@ async def run_mcp_llm_agent(user_query:str)->str:
 
             return "최대 반복 횟수 초과"
 if __name__ == "__main__":
-    q = "ORD-1001 상태를 확인하고, ORD-1002는 '배송 지연 우려'로 환불 접수해줘."
+    q = "ORD_1001 상태를 확인하고, ORD_1002는 '배송 지연 우려'로 환불 접수해줘."
     print(asyncio.run(run_mcp_llm_agent(q)))        

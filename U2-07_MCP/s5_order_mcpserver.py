@@ -1,5 +1,11 @@
 import httpx
-from mcp.server.mcpserver import MCPServer
+try:
+    from mcp.server.mcpserver import MCPServer
+except ModuleNotFoundError as error:
+    if error.name != "mcp.server.mcpserver":
+        raise
+    from mcp.server.fastmcp import FastMCP as MCPServer
+
 mcp = MCPServer("OrderManageMCP")
 BASE_URL = "http://127.0.0.1:8000"
 
