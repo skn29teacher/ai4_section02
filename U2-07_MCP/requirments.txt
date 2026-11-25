@@ -1,3 +1,6 @@
-mcp[cli]
+mcp[cli]>=2,<3
 fastapi
-langchain_mcp_adapters
+httpx
+langchain-openai
+python-dotenv
+uvicorn
