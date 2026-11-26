@@ -17,3 +17,58 @@ from pydantic import BaseModel, Field
 
 load_dotenv('.env',override=True)
 
+OPENAI_API_KEY=os.get("OPENAI_API_KEY")
+OPENAI_EMBEDDING_MODEL=os.get("OPENAI_EMBEDDING_MODEL")
+PINECONE_API_KEY=os.get("PINECONE_API_KEY")
+PINECONE_INDEX_NAME=os.get("PINECONE_INDEX_NAME")
+PINECONE_NAMESAPCE=os.get("PINECONE_NAMESAPCE")
+
+# 사내 지식베이스 문서 (상품 가이드 + 환불/보증 정책)
+KNOWLEDGE_DOCS = [
+    {
+        "id": "kb-01",
+        "doc_type": "catalog",
+        "sku": "SKU-101",
+        "text": "SKU-101 저소음 적축 무선 기계식 키보드: 사무실·도서관 환경에 적합한 조용한 타건감, 블루투스 5.1 및 2.4GHz 동글 지원, 맥/윈도우 겸용.",
+    },
+    {
+        "id": "kb-02",
+        "doc_type": "catalog",
+        "sku": "SKU-102",
+        "text": "SKU-102 USB-C 8-in-1 PD 멀티 허브: 4K 60Hz HDMI 출력, 100W PD 충전 패스스루, SD카드 리더 및 기가비트 유선랜 탑재. 외근·출장용 추천.",
+    },
+    {
+        "id": "kb-03",
+        "doc_type": "catalog",
+        "sku": "SKU-103",
+        "text": "SKU-103 알루미늄 각도조절 노트북 스탠드: 17인치 노트북까지 거치 가능, 발열 해소 통풍 설계, 거북목 예방용 데스크 셋업 추천.",
+    },
+    {
+        "id": "kb-04",
+        "doc_type": "policy",
+        "sku": "NONE",
+        "text": "환불 및 반품 규정: 상품 배송 완료 후 7일 이내(days_since_delivery <= 7)에만 단순 변심 환불이 가능합니다. 배송 완료 후 7일이 초과된 주문은 단순 변심 환불이 불가합니다.",
+    },
+    {
+        "id": "kb-05",
+        "doc_type": "policy",
+        "sku": "NONE",
+        "text": "VIP 및 대량 구매 안내: 동일 상품 2개 이상 주문 시 무료 당일 출고 대상이며, 재고가 0개인 품절 상품은 예약 주문을 받지 않습니다.",
+    },
+]
+
+
+def _cosine_sim(a: list[float], b: list[float]) -> float:
+    dot = sum(x * y for x, y in zip(a, b))
+    na = math.sqrt(sum(x * x for x in a))
+    nb = math.sqrt(sum(y * y for y in b))
+    return dot / (na * nb + 1e-12)
+
+
+class StoreSearchInput(BaseModel):
+    query: str = Field(..., description="검색할 상품 특징, 추천 조건 또는 스토어 정책 질문")
+    doc_type: Literal["all", "catalog", "policy"] = Field(
+        default="all",
+        description="문서 유형 필터 ('catalog': 상품 안내, 'policy': 환불/배송 규정, 'all': 전체)",
+    )
+    top_k: int = Field(default=2, ge=1, le=5, description="반환할 상위 문서 개수")
