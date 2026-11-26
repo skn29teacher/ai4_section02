@@ -1,4 +1,5 @@
 # langchain tool 생성
+import json
 import os
 
 import os
@@ -16,8 +17,8 @@ def search_subway_arrivals(station_name: str) -> dict:
     api_key = os.getenv("SEOUL_SUBWAY_API_KEY", "").strip()
     if not api_key:
         raise ValueError(".env에 SEOUL_SUBWAY_API_KEY를 설정해 주세요.")
-
     return get_arrivals(station_name, api_key)
 
 if __name__ == "__main__":
-    print(search_subway_arrivals.invoke({"station_name": "독산"}))
+    result = search_subway_arrivals.invoke({"station_name": "독산"})
+    print(json.dumps(result, ensure_ascii=False, indent=2))
