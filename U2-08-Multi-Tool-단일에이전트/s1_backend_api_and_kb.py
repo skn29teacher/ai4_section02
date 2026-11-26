@@ -64,7 +64,7 @@ class RefundCreateBody(BaseModel):
 app = FastAPI(title='Simulation', version="1.0.0")
 
 # 상품조회
-@app.get("/api/product/{sku}")
+@app.get("/api/products/{sku}")
 def read_product(sku:str):
     item = INVENTORY_DB.get(sku.upper())
     if not item:
