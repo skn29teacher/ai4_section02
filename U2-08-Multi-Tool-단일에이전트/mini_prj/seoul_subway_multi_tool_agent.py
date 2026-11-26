@@ -11,7 +11,7 @@ from seoul_subway_api_tool_test import search_subway_arrivals
 
 
 def run_agent(query: str) -> str:
-    load_dotenv(Path(__file__).with_name(".env"), override=True)
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
     tools = [search_subway_arrivals]
     agent = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-5-nano").bind_tools(tools)
     messages = [

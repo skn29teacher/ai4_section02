@@ -38,7 +38,7 @@ def get_arrivals(station_name: str, api_key: str) -> dict:
 
 
 def main() -> None:
-    load_dotenv(Path(__file__).with_name(".env"), override=True)
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
     api_key = os.getenv("SEOUL_SUBWAY_API_KEY", "").strip()
     if not api_key:
         raise SystemExit(".env에 SEOUL_SUBWAY_API_KEY를 설정해 주세요.")

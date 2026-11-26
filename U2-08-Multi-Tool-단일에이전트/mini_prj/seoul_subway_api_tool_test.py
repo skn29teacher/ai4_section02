@@ -13,7 +13,7 @@ from seoul_subway_api_test import get_arrivals
 def search_subway_arrivals(station_name: str) -> dict:
     """서울시 지하철 실시간 도착 정보를 조회합니다. 역 이름을 입력하면 해당 역의 도착 정보를 반환합니다."""
 
-    load_dotenv(Path(__file__).with_name(".env"), override=True)
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
     api_key = os.getenv("SEOUL_SUBWAY_API_KEY", "").strip()
     if not api_key:
         raise ValueError(".env에 SEOUL_SUBWAY_API_KEY를 설정해 주세요.")
