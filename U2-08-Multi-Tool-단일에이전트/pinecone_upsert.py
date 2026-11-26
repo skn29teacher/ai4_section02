@@ -9,11 +9,11 @@ from pinecone import Pinecone
 
 load_dotenv('.env',override=True)
 
-OPENAI_API_KEY=os.get("OPENAI_API_KEY")
-OPENAI_EMBEDDING_MODEL=os.get("OPENAI_EMBEDDING_MODEL")
-PINECONE_API_KEY=os.get("PINECONE_API_KEY")
-PINECONE_INDEX_NAME=os.get("PINECONE_INDEX_NAME")
-PINECONE_NAMESPACE=os.get("PINECONE_NAMESPACE")
+OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
+OPENAI_EMBEDDING_MODEL=os.getenv("OPENAI_EMBEDDING_MODEL")
+PINECONE_API_KEY=os.getenv("PINECONE_API_KEY")
+PINECONE_INDEX_NAME=os.getenv("PINECONE_INDEX_NAME")
+PINECONE_NAMESPACE=os.getenv("PINECONE_NAMESPACE")
 
 # 사내 지식베이스 문서 (상품 가이드 + 환불/보증 정책)
 KNOWLEDGE_DOCS = [
@@ -48,6 +48,24 @@ KNOWLEDGE_DOCS = [
         "text": "VIP 및 대량 구매 안내: 동일 상품 2개 이상 주문 시 무료 당일 출고 대상이며, 재고가 0개인 품절 상품은 예약 주문을 받지 않습니다.",
     },
 ]
+
+# 인덱스 생성
+import time
+from pinecone import ServerlessSpec
+pc = Pinecone(api_key=PINECONE_API_KEY)
+index_name = PINECONE_INDEX_NAME
+if not pc.has_index(index_name):
+    pc.create_index(
+        name=index_name,
+        dimension=1536,
+        metric='cosine',
+        spec=ServerlessSpec(cloud='aws',region='us-east-1')
+    )
+    # 인덱스가 준비될때까지 대기
+    while not pc.describe_index(index_name).status.get('ready'):
+        time.sleep(1)
+    print(f'인덱스 {PINECONE_INDEX_NAME} 생성 완료')
+
 def upsert_knowledge_docs()->None:
     if not PINECONE_API_KEY:
         raise ValueError("PINECONE_API_KEY가 설정되어 있지 않습니다.")
@@ -66,8 +84,7 @@ def upsert_knowledge_docs()->None:
         }
         
         for doc, vec in zip(KNOWLEDGE_DOCS,vectors)
-    ]
-    pc = Pinecone(api_key=PINECONE_API_KEY)
+    ]    
     index = pc.Index(PINECONE_INDEX_NAME)
     upsert_kwargs = {'vectors':records}
     if PINECONE_NAMESPACE:
