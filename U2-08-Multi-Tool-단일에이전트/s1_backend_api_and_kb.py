@@ -72,8 +72,22 @@ def read_product(sku:str):
     return item
 # 주문등록
 @app.post("/api/orders")
-def create_order(body: OrderCreateBody):
-    pass
+def create_order(body: OrderCreateBody) -> dict:
+    item = INVENTORY_DB.get(body.sku)
+    item['stock'] -= body.quantity
+    new_order_id = f"ORD-{5000+ len(ORDERS_DB) + 1}"
+    order_record = {
+        "order_id": new_order_id,
+        "sku": body.sku,
+        "quantity": body.quantity,
+        "total_krw": item['price_krw'] * body.quantity,
+        "status": "CONFIRMED",
+        "remaining_stock" : item['stock'],
+    }
+    ORDERS_DB[new_order_id] = order_record
+    return order_record
+
+
 # 주문조회
 @app.post("/api/orders/{order_id}")
 def read_order(order_id:str):
