@@ -1,6 +1,8 @@
 import json
 import os
+from collections.abc import Callable
 from pathlib import Path
+from typing import Literal
 
 import httpx
 from dotenv import load_dotenv
@@ -10,10 +12,21 @@ from langchain_openai import ChatOpenAI
 from seoul_subway_api_tool_test import search_subway_arrivals
 
 
-def run_agent(query: str) -> str:
+AgentStage = Literal["selecting_tool", "fetching_arrivals", "writing_answer"]
+
+
+def run_agent(
+    query: str,
+    *,
+    on_progress: Callable[[AgentStage, dict | None], None] | None = None,
+) -> str:
     load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        raise ValueError("상위 폴더의 .env에 OPENAI_API_KEY를 설정해 주세요.")
+
     tools = [search_subway_arrivals]
-    agent = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-5-nano").bind_tools(tools)
+    agent = ChatOpenAI(api_key=api_key, model="gpt-5-nano", timeout=45.0, max_retries=1).bind_tools(tools)
     messages = [
         SystemMessage(
             content=(
@@ -30,6 +43,9 @@ def run_agent(query: str) -> str:
     ]
     tool_registry = {tool.name: tool for tool in tools}
 
+    if on_progress is not None:
+        on_progress("selecting_tool", None)
+
     for _ in range(5):
         ai_message = agent.invoke(messages)
         messages.append(ai_message)
@@ -37,6 +53,8 @@ def run_agent(query: str) -> str:
             return ai_message.text
 
         for call in ai_message.tool_calls:
+            if on_progress is not None:
+                on_progress("fetching_arrivals", None)
             tool = tool_registry.get(call["name"])
             try:
                 if tool is None:
@@ -54,6 +72,8 @@ def run_agent(query: str) -> str:
             messages.append(
                 ToolMessage(content=json.dumps(result, ensure_ascii=False), tool_call_id=call["id"])
             )
+            if on_progress is not None:
+                on_progress("writing_answer", result)
 
     return "도구 호출 횟수 제한에 도달했습니다."
 

@@ -1,0 +1,105 @@
+.subway-loading,
+.subway-track {
+    --train: #079881;
+    --rail: #8797a7;
+    position: relative;
+}
+
+.subway-train {
+    position: absolute;
+    width: 29px;
+    height: 15px;
+    border-radius: 4px 8px 3px 3px;
+    background: var(--train);
+    box-shadow: inset 0 -3px #006957;
+}
+
+.subway-train::before {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 5px;
+    height: 4px;
+    border-radius: 1px;
+    background: #e9fff9;
+    box-shadow: 7px 0 #e9fff9, 14px 0 #e9fff9;
+    content: "";
+}
+
+.subway-loading {
+    height: 35px;
+    border-bottom: 2px solid var(--rail);
+    overflow: hidden;
+}
+
+.subway-loading .subway-train {
+    bottom: 4px;
+    left: 0;
+    animation: subway-loading-ride 1900ms ease-in-out infinite;
+}
+
+.subway-track {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding-top: 19px;
+}
+
+.subway-track::before {
+    position: absolute;
+    top: 23px;
+    right: 12.5%;
+    left: 12.5%;
+    height: 2px;
+    background: var(--rail);
+    content: "";
+}
+
+.subway-stop {
+    position: relative;
+    font-size: 0.72rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.subway-stop::before {
+    display: block;
+    width: 10px;
+    height: 10px;
+    margin: 0 auto 4px;
+    border: 2px solid var(--rail);
+    border-radius: 50%;
+    background: var(--background-color, #fff);
+    content: "";
+}
+
+.subway-stop-active {
+    font-weight: 700;
+}
+
+.subway-stop-active::before {
+    border-color: var(--train);
+    background: var(--train);
+}
+
+.subway-stop-active .subway-train {
+    top: -18px;
+    left: calc(50% - 14px);
+    animation: subway-signal 550ms ease-out both;
+}
+
+@keyframes subway-loading-ride {
+    0% { left: 0; }
+    100% { left: calc(100% - 29px); }
+}
+
+@keyframes subway-signal {
+    0% { opacity: 0; transform: translateY(3px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .subway-loading .subway-train,
+    .subway-stop-active .subway-train {
+        animation: none;
+    }
+}
