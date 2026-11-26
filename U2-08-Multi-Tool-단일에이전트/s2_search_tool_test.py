@@ -26,7 +26,7 @@ class StoreSearchInput(BaseModel):
 
 @tool(args_schema=StoreSearchInput)
 def search_store_knowledge(query:str, doc_type:str="all",top_k:int=2)->dict:
-    '''스토어 상품 가이다(sku 정보, 추천용도)와 환불 배송 정책 문서를 벡터 유사도로 검색합니다.'''
+    '''스토어 상품 가이드(sku 정보, 추천용도)와 환불 배송 정책 문서를 벡터 유사도로 검색합니다.'''
     embeddings = OpenAIEmbeddings(model=OPENAI_EMBEDDING_MODEL,api_key=OPENAI_API_KEY)
     q_vec = embeddings.embed_query(query)
     # 1) PINECONE_API_KEY가 설정된 경우 실제 Pinecone index.query 사용
