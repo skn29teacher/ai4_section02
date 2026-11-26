@@ -30,6 +30,7 @@ def search_store_knowledge(query:str, doc_type:str="all",top_k:int=2)->dict:
     embeddings = OpenAIEmbeddings(model=OPENAI_EMBEDDING_MODEL,api_key=OPENAI_API_KEY)
     q_vec = embeddings.embed_query(query)
     # 1) PINECONE_API_KEY가 설정된 경우 실제 Pinecone index.query 사용
+    # PINECONE_API_KEY = None  # faultback 테스트
     if PINECONE_API_KEY:
         from pinecone import Pinecone
 
