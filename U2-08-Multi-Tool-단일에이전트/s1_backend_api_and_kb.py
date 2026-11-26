@@ -52,3 +52,33 @@ ORDERS_DB = {
         "days_since_delivery": 12,
     },
 }
+
+class OrderCreateBody(BaseModel):
+    sku : str
+    quantity : int
+
+class RefundCreateBody(BaseModel):
+    order_id : str
+    reason : str
+
+app = FastAPI(title='Simulation', version="1.0.0")
+
+# 상품조회
+@app.get("/api/product/{sku}")
+def read_product(sku:str):
+    item = INVENTORY_DB.get(sku.upper())
+    if not item:
+        raise HTTPException(status_code=404, detail=f'존재하지 않는 상품코드입니다.{sku}')
+    return item
+# 주문등록
+@app.post("/api/orders")
+def create_order(body: OrderCreateBody):
+    pass
+# 주문조회
+@app.post("/api/orders/{order_id}")
+def read_order(order_id:str):
+    pass
+# 환불등록
+@app.post("/api/orders/refund")
+def refund_order(body:RefundCreateBody):
+    pass
