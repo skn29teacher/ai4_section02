@@ -77,6 +77,8 @@ def create_order(body: OrderCreateBody) -> dict:
 
     if item['stock'] < body.quantity:
         raise HTTPException(status_code=406, detail=f"재고부족 요청:{body.quantity} 현재 재고:{item["stock"]}")   
+    item['stock'] -= body.quantity
+
     
     if not item:
         raise HTTPException(status_code=404, detail=f"존재하지 않는 상품코드 {body.sku}")       

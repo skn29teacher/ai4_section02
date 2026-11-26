@@ -10,7 +10,7 @@ from s4_basic_multi_tool_agent import run_basic_multi_tool_agent
 
 if __name__ == "__main__":
     print('병렬 호출')
-    q_parallel = 'SKU-101 실시간 재고랑 ORD-5001 주문상태 둘다 한번에 확인해줘'
+    q_parallel = 'SKU-101 재고랑 ORD-5001 주문상태 둘다 한번에 확인해줘'
     print(run_basic_multi_tool_agent(q_parallel))
 
     print('순차호출')
