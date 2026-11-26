@@ -5,7 +5,7 @@
     # 실시간 재고, 가격, 배송상태 조회
     # 재고 차감, 주문생성, 환불접수 등 외부시스템 상태 변경
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import uvicorn
 
 # 모의 데이터
@@ -55,7 +55,7 @@ ORDERS_DB = {
 
 class OrderCreateBody(BaseModel):
     sku : str
-    quantity : int
+    quantity : int = Field(..., gt=0)
 
 class RefundCreateBody(BaseModel):
     order_id : str
@@ -72,9 +72,15 @@ def read_product(sku:str):
     return item
 # 주문등록
 @app.post("/api/orders")
-def create_order(body: OrderCreateBody) -> dict:
+def create_order(body: OrderCreateBody) -> dict:    
     item = INVENTORY_DB.get(body.sku)
-    item['stock'] -= body.quantity
+
+    if item['stock'] < body.quantity:
+        raise HTTPException(status_code=406, detail=f"재고부족 요청:{body.quantity} 현재 재고:{item["stock"]}")   
+    
+    if not item:
+        raise HTTPException(status_code=404, detail=f"존재하지 않는 상품코드 {body.sku}")       
+    
     new_order_id = f"ORD-{5000+ len(ORDERS_DB) + 1}"
     order_record = {
         "order_id": new_order_id,
