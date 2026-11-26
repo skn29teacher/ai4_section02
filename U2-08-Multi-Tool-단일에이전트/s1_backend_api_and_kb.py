@@ -89,10 +89,24 @@ def create_order(body: OrderCreateBody) -> dict:
 
 
 # 주문조회
-@app.post("/api/orders/{order_id}")
+@app.get("/api/orders/{order_id}")
 def read_order(order_id:str):
-    pass
+    order = ORDERS_DB.get(order_id.upper())
+    if not order:
+        raise HTTPException(status_code=404, detail=f'존재하지 않는 주문 번호입니다.{order_id}')
+    return order 
+
 # 환불등록
 @app.post("/api/orders/refund")
 def refund_order(body:RefundCreateBody):
-    pass
+    order = ORDERS_DB.get(body.order_id.upper())
+    order['status'] = 'REFUNDED'
+    return {
+        'order_id' : order['order_id'],
+        'refund_status':"REFUNDED",
+        'reason' : body.reason,
+        'refunded_krw' : order['total_krw']
+    }
+
+if __name__=="__main__":
+    uvicorn.run(app, host="127.0.0.1",port=8000)
