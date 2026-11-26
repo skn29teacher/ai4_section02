@@ -11,11 +11,15 @@ from dotenv import load_dotenv
 SUBWAY_API_URL = "http://swopenapi.seoul.go.kr/api/subway"
 
 
-def get_arrivals(station_name: str, api_key: str) -> dict:
+def normalize_station_name(station_name: str) -> str:
     station_name = station_name.strip().removesuffix("역").strip()
     if not station_name:
         raise ValueError("역 이름을 입력해 주세요.")
+    return station_name
 
+
+def get_arrivals(station_name: str, api_key: str) -> dict:
+    station_name = normalize_station_name(station_name)
     key_segment = quote(api_key, safe="")
     station_segment = quote(station_name, safe="")
     url = f"{SUBWAY_API_URL}/{key_segment}/json/realtimeStationArrival/0/10/{station_segment}"

@@ -87,6 +87,18 @@
     animation: subway-signal 550ms ease-out both;
 }
 
+.subway-track-estimated > .subway-train {
+    top: 1px;
+    left: 12.5%;
+    transform: translateX(-50%);
+}
+
+.subway-countdown {
+    margin: 0.5rem 0 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
 @keyframes subway-loading-ride {
     0% { left: 0; }
     100% { left: calc(100% - 29px); }
