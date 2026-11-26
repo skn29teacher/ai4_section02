@@ -12,9 +12,13 @@ SUBWAY_API_URL = "http://swopenapi.seoul.go.kr/api/subway"
 
 
 def get_arrivals(station_name: str, api_key: str) -> dict:
+    station_name = station_name.strip().removesuffix("역").strip()
+    if not station_name:
+        raise ValueError("역 이름을 입력해 주세요.")
+
     key_segment = quote(api_key, safe="")
     station_segment = quote(station_name, safe="")
-    url = f"{SUBWAY_API_URL}/{key_segment}/json/realtimeStationArrival/0/5/{station_segment}"
+    url = f"{SUBWAY_API_URL}/{key_segment}/json/realtimeStationArrival/0/10/{station_segment}"
 
     response = httpx.get(url, timeout=10.0)
     response.raise_for_status()
@@ -40,10 +44,7 @@ def main() -> None:
         raise SystemExit(".env에 SEOUL_SUBWAY_API_KEY를 설정해 주세요.")
 
     print("역 이름을 입력하세요 [독산역]: ", end="", file=sys.stderr, flush=True)
-    user_input = input().strip() or "독산역"
-    station_name = user_input.removesuffix("역").strip()
-    if not station_name:
-        raise SystemExit("역 이름을 입력해 주세요.")
+    station_name = input().strip() or "독산역"
 
     try:
         payload = get_arrivals(station_name, api_key)
