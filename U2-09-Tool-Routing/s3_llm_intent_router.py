@@ -43,3 +43,8 @@ def build_intent_router():
         ('human','<untrusted_user_input>\n{query}\n<untrusted_user_input>')
     ])    
     return prompt | structured_llm
+
+if __name__=='__main__':
+    router = build_intent_router()
+    decision:RouteDecison =  router.invoke({'query':'단순 변심 환불은 배송 후 며칠까지 가능한가요?'})
+    print(f' -->분기 {decision.route} 확신도 {decision.confidence:.2f} 근거 : {decision.reason}')
