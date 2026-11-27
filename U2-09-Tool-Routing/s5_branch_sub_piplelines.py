@@ -110,3 +110,15 @@ branched_pipeline = (
         general_branch,
     )
 )
+if __name__ == "__main__":
+    start_mock_api_background()
+    queries = [
+        "환불 기준이 며칠인지 알려줘.",
+        "SKU-101 현재 재고 몇 개야?",
+        "출장용 멀티 허브 추천해 주고 재고 있으면 1개 주문해줘.",
+    ]
+    for q in queries:
+        res = branched_pipeline.invoke({"query": q})
+        print(f"질문: {q}")
+        print(f"  선택 경로: {res['route']} | 실행 도구: {res['used_tools']}")
+        print(f"  응답: {res['answer']}\n")
