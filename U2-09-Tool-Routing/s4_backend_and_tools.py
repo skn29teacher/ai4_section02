@@ -9,6 +9,8 @@ import math
 import os
 import threading
 import time
+from pathlib import Path
+
 import httpx
 import uvicorn
 from dotenv import load_dotenv
@@ -17,7 +19,7 @@ from langchain_core.tools import tool
 from langchain_openai import OpenAIEmbeddings
 from pydantic import BaseModel, Field
 
-load_dotenv(".env", override=True)
+load_dotenv(Path(__file__).resolve().with_name(".env"), override=True)
 
 API_HOST = "127.0.0.1"
 API_PORT = 8010
@@ -182,3 +184,7 @@ SEARCH_TOOLS = [search_store_docs]
 READ_API_TOOLS = [api_get_product, api_get_order]
 ACTION_API_TOOLS = [api_get_product, api_get_order, api_create_order, api_refund_order]
 ALL_TOOLS = [search_store_docs, api_get_product, api_get_order, api_create_order, api_refund_order]
+
+
+if __name__ == "__main__":
+    uvicorn.run(api_app, host=API_HOST, port=API_PORT)
