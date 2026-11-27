@@ -1,0 +1,26 @@
+# LLM Structed Output 기반 의도 분류 라우터
+# openai 모델에서 method='json_schema, strict=True' 명시하면 네이티브 Structed Outputs 활성화
+# Pydantic 스키마 타입과 필수 필드를 100%보장(단 strict=Ture 사용시 모든 필드에 기본값 또는 Optional 타입을 명시)
+
+import os
+from typing import Literal
+from dotenv import load_dotenv
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
+load_dotenv('.env',override=True)
+
+class RouteDecison(BaseModel):
+    route:Literal["KNOWLDGE_SEARCH",'API_READ','API_ACTION','MULTI_STEP','GENERAL_CHAT'] = Field(
+        description=(
+            'KNOWLDGE_SEARCH : 상품 스펙/추천/환불 규정 문서 검색만 필요한 경우 |'
+            'API_READ : 특정 제고나 SKU 재고 ORD 주문 상태의 실시간 조회만 필요한 경우 |'
+            'API_ACTION : 특정 SKU 주문 생성 또는 ORD 환불 접수를 바로 실행하는 경우 |'
+            'MULTI_STEP : 규정/카달로그 검색과 실시간 API 조회 실행을 순차적으로 함께 해야 하는 복합 요청 |'
+            'GENERAL_CHAT : 인사, 일반 대화, 도구 호출이 필요한 질문'
+        )
+    )
+    confidence: float = Field(description="라우팅 결정 확신도 (0.0에서 1.0 사이 실수)")
+    reason: str = Field(description="해당 경로를 선택한 핵심 근거")
+    extracted_sku: str | None = Field(description="질문에서 감지된 상품 코드 (예: SKU-101), 없으면 null")
+    extracted_order_id: str | None = Field(description="질문에서 감지된 주문 번호 (예: ORD-5001), 없으면 null")
