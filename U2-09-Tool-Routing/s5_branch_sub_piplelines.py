@@ -29,8 +29,7 @@ def make_tool_executor_chain(branch_name: str, allowed_tools: list, system_instr
 
     def _run(state: dict) -> dict:
         llm = ChatOpenAI(
-            model=os.getenv("OPENAI_LLM_MODEL", "gpt-4o-mini"),
-            temperature=0,            
+            model=os.getenv("OPENAI_LLM_MODEL", "gpt-4o-mini"),            
         )
         bound_llm = llm.bind_tools(allowed_tools) if allowed_tools else llm
 
