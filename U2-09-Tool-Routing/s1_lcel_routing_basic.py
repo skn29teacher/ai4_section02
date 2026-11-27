@@ -1,10 +1,10 @@
 # 라우팅
     # 입력 데이터의 조건을 판별해서 서로다른 후속 체임(Runnable) 중 하나를 동적으로 선택 실행
 # LCEL 3대 라우팅 빌딩 블럭
-    # RunnablePassThrough : 입력 데이터를 그대로 다음 체임으로 전달
+    # RunnablePassthrough : 입력 데이터를 그대로 다음 체인으로 전달
     # RunnableBranch(조건함수1,체인1), (조건함수2,체인2)... if else else 구조로 동작
     # RunnableLambda : 파이썬 조건로직으로 분기대상을 반환하는 커스텀 라우터함수를 LCEL 파이프라인에 적용
-from langchain_core.runnables import RunnablePassThrough, RunnableBranch, RunnableLambda
+from langchain_core.runnables import RunnableBranch, RunnableLambda, RunnablePassthrough
 
 # 1. 조건을 판별하는 함수
 def classify_by_keyword(payload:dict) -> str:
@@ -19,11 +19,11 @@ def classify_by_keyword(payload:dict) -> str:
 
 search_handler = RunnableLambda(lambda x: f"[검색 체인 실행] {x['query']} -> 지식베이스 검색 도구 연결")
 api_read_handler = RunnableLambda(lambda x: f"[조회 API 체인 실행] {x['query']} -> 실시간 조회 API 도구 연결")
-action_handler = RunnableLambda(lambda x: f"[검색 체인 실행] {x['query']} -> 트랜잭션 실행 도구 연결")
+action_handler = RunnableLambda(lambda x: f"[실행 API 체인 실행] {x['query']} -> 트랜잭션 실행 도구 연결")
 general_handler = RunnableLambda(lambda x: f"[검색 체인 실행] {x['query']} -> 도구없이 일반 답변")
 
 routing_pipeline = (
-    RunnablePassThrough.assign(route=RunnableLambda(classify_by_keyword))
+    RunnablePassthrough.assign(route=RunnableLambda(classify_by_keyword))
     | RunnableBranch(
         (lambda x : x['route'] == 'SEARCH_BRANCH', search_handler),
         (lambda x : x['route'] == 'API_READ_BRANCH', api_read_handler),
@@ -31,5 +31,12 @@ routing_pipeline = (
         general_handler,
     )
 )
-if __name__=="__main__":
-    routing_pipeline.invoke({'query':'환불 규정이 어떻게 되나요?'})
+if __name__ == "__main__":
+    samples = [
+        {'query': '환불 규정이 어떻게 되나요?'},
+        {'query': 'SKU-101 현재 재고 상태 알려줘'},
+        {'query': 'ORD-5001 주문 환불 접수해줘'},
+        {'query': '안녕하세요 오늘 운영시간이 궁금해요'}
+    ]
+    for s in samples:
+        print( routing_pipeline.invoke(s) )
