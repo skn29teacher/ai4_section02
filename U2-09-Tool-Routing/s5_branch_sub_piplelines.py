@@ -68,10 +68,45 @@ def make_tool_executor_chain(branch_name: str, allowed_tools: list, system_instr
 
     return RunnableLambda(_run)
 
-knowlege_branch =  make_tool_executor_chain(
+# 각 분기별 전용 sub-pipeline
+knowledge_branch =  make_tool_executor_chain(
     "KNOWLEGE_SEARCH",
     SEARCH_TOOLS,
     '당신은 스토어 안내담당자입니다.  search_store_docs 도구만 사용해서 규정과 상품 가이드를 찾아 답변하세요'
 )
+api_read_branch = make_tool_executor_chain(
+    "API_READ",
+    READ_API_TOOLS,
+    "당신은 실시간 조회 담당자입니다. 조회 API 도구만 사용해 재고와 주문 상태를 정확히 알려주세요.",
+)
+api_action_branch = make_tool_executor_chain(
+    "API_ACTION",
+    ACTION_API_TOOLS,
+    "당신은 주문·환불 처리 담당자입니다. 상태 확인 후 주문 또는 환불 API를 실행하세요.",
+)
+multi_step_branch = make_tool_executor_chain(
+    "MULTI_STEP",
+    ALL_TOOLS,
+    "당신은 통합 컨시어지입니다. 먼저 지식/규정을 검색하고, 실시간 API 조회 및 실행을 순서대로 처리하세요.",
+)
+general_branch = make_tool_executor_chain(
+    "GENERAL_CHAT",
+    [],
+    "당신은 친절한 고객 응대 챗봇입니다. 외부 도구 호출 없이 간결하게 인사하고 안내하세요.",
+)
 
-print('knowlege_branch',knowlege_branch)
+
+
+# 라우터 + RunnableBranch 통합 체인
+intent_router = build_intent_router()
+
+branched_pipeline = (
+    RunnablePassthrough.assign(decision=RunnableLambda(lambda x: intent_router.invoke({"query": x["query"]})))
+    | RunnableBranch(
+        (lambda x: x["decision"].route == "KNOWLEDGE_SEARCH", knowledge_branch),
+        (lambda x: x["decision"].route == "API_READ", api_read_branch),
+        (lambda x: x["decision"].route == "API_ACTION", api_action_branch),
+        (lambda x: x["decision"].route == "MULTI_STEP", multi_step_branch),
+        general_branch,
+    )
+)
