@@ -5,14 +5,8 @@
 
     # API_READ 분기는 READ_API_TOOLS만 바인딩
     # MULTI_STEP 분기에는 검색+조회+실행 도구를 모두 열어둔다
-import math
+import json
 import os
-import threading
-import time
-from pathlib import Path
-
-import httpx
-import uvicorn
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage,SystemMessage,ToolMessage
 from langchain_core.runnables import RunnableBranch,RunnableLambda,RunnablePassthrough
@@ -36,8 +30,7 @@ def make_tool_executor_chain(branch_name: str, allowed_tools: list, system_instr
     def _run(state: dict) -> dict:
         llm = ChatOpenAI(
             model=os.getenv("OPENAI_LLM_MODEL", "gpt-4o-mini"),
-            temperature=0,
-            api_key=os.getenv("OPENAI_API_KEY"),
+            temperature=0,            
         )
         bound_llm = llm.bind_tools(allowed_tools) if allowed_tools else llm
 
@@ -51,6 +44,7 @@ def make_tool_executor_chain(branch_name: str, allowed_tools: list, system_instr
             ai_msg = bound_llm.invoke(messages)
             messages.append(ai_msg)
 
+            # if not ai_msg.tool_calls:
             if not getattr(ai_msg, "tool_calls", None):
                 return {
                     "route": branch_name,
