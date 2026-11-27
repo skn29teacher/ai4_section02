@@ -2,6 +2,7 @@
 # LLM 라우터 앞에 규칙기반 라우터를 위치
     # 속도와 비용:정규식, 사용자 메타데이터,명백한 인젝션 패턴은 LLM을 부르지 않고 즉시 분기
     # 보안 통제 : 프롬프트 인젝션 시그니처가 감지되면 LLM 판단전에 SECURITY_BLOCK 경로로 격리
+import re
 from langchain_core.runnables import RunnableBranch, RunnableLambda,RunnablePassthrough
 INJECTION_PATTERNS = [
     # 이전 지시를 무시하거나 따르지 말라는 명령    
@@ -26,3 +27,30 @@ INJECTION_PATTERNS = [
         r"(?:(?:the|your|full|entire|original|current|hidden)\s+)*",
         r"(?:system|developer|internal)[\s-]+(?:prompts?|messages?|instructions?)\b",
 ]
+
+def rule_prefilter(payload: dict) -> dict:
+    query = payload.get('query',"")
+    user_tier = payload.get('user_tier', 'STANDARD')
+
+    # 1. 보안 위협 패턴 감지 -> 즉시차단 브랜치
+    for pat in INJECTION_PATTERNS:
+        if re.search(pat, query, flags=re.IGNORECASE):
+            return {'pre_route':"SECURITY_BLOCK", 'reason':"프롬프트 인젝션 패턴 감지"}
+    # 2. 식별자 패턴탐지(힌트 추출)    
+    sku_match = re.search(r"\bSKU-\d+\b", query, flags=re.IGNORECASE)
+    ord_match = re.search(r"\bORD-\d+\b", query, flags=re.IGNORECASE)
+
+    # 3.VIP 전용 긴급 장애/클레임 키워드 분기
+    if user_tier == "VIP" and  any(w in query for w in ['긴급','장애','즉시']):
+        return {
+            'pre_route':'VIP_FAST_TRACK',
+            'reason' : 'VIP 긴급 우선 처리 조건 충족',
+            'sku': sku_match.group(0).upper() if sku_match else None,
+            'order_id':ord_match.group(0).upper() if ord_match else None,
+        }
+    return {
+        'pre_route':'NEEDS_LLM_ROUTER',
+        'reason' : '자연어 의도 분류 필요',
+        'sku': sku_match.group(0).upper() if sku_match else None,
+        'order_id':ord_match.group(0).upper() if ord_match else None,
+    }
