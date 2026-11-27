@@ -11,7 +11,7 @@ from langchain_core.runnables import RunnableBranch, RunnableLambda, RunnablePas
 from s2_rule_based_router import rule_prefilter
 from s3_llm_intent_router import build_intent_router
 from s4_backend_and_tools import start_mock_api_background
-from s5_branch_sub_pipelines import (
+from s5_branch_sub_piplelines import (
     api_action_branch,
     api_read_branch,
     general_branch,
