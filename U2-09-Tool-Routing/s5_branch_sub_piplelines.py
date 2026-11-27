@@ -67,3 +67,11 @@ def make_tool_executor_chain(branch_name: str, allowed_tools: list, system_instr
         return {"route": branch_name, "used_tools": used_tools, "answer": "반복 한도 초과"}
 
     return RunnableLambda(_run)
+
+knowlege_branch =  make_tool_executor_chain(
+    "KNOWLEGE_SEARCH",
+    SEARCH_TOOLS,
+    '당신은 스토어 안내담당자입니다.  search_store_docs 도구만 사용해서 규정과 상품 가이드를 찾아 답변하세요'
+)
+
+print('knowlege_branch',knowlege_branch)
