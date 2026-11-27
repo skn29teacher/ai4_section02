@@ -53,7 +53,7 @@ if __name__=='__main__':
         "단순 변심 환불은 배송 후 며칠까지 가능한가요?",
         "SKU-102 재고 몇 개 남았는지 확인해줘.",
         "출장용 멀티 허브 추천받아서 재고 있으면 1개 주문하고 싶어.",
-        "반가워요! 오늘 날씨 좋네요.",
+        "반가워요! 오늘 날씨 알려주세요.",
     ]
     for q in test_queries:
         decision: RouteDecison = router.invoke({"query": q})
