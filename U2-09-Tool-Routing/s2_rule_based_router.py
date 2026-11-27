@@ -5,27 +5,24 @@
 import re
 from langchain_core.runnables import RunnableBranch, RunnableLambda,RunnablePassthrough
 INJECTION_PATTERNS = [
-    # 이전 지시를 무시하거나 따르지 말라는 명령    
-        r"(?:이전|기존|앞선|모든)\s*(?:규칙|지시(?:사항)?|지침|명령)",
-        r"\s*(?:을|를|은|는)?\s*(?:(?:모두|전부)\s*)?",
-        r"(?:무시\s*(?:하고|해(?:\s*(?:줘|주세요))?|하라|하세요)",
-        r"|잊어(?:\s*버려)?|따르지\s*마(?:세요)?|무시(?=\s*[.!?]*\s*$))\b",    
-    # 시스템 또는 개발자 프롬프트를 공개하라는 명령    
-        r"(?:시스템|개발자|내부)\s*(?:프롬프트|메시지|지시사항)",
-        r"\s*(?:을|를|은|는)?\s*(?:(?:그대로|모두|전부)\s*)?",
-        r"(?:(?:출력|공개)\s*(?:해(?:\s*(?:줘|주세요))?|하라|하세요)",
-        r"|(?:보여|알려)\s*(?:줘(?:요)?|주세요|주라))\b",    
-    # 영어로 이전 지시를 무시하라는 명령    
-        r"(?i)(?<!\bdo\snot\s)(?<!\bdon['’]t\s)(?<!\bnever\s)",
-        r"\b(?:ignore|disregard|forget|override|do\s+not\s+follow)\s+",
-        r"(?:(?:all|the|your|any)\s+)*",
-        r"(?:(?:previous|prior|earlier|above|existing|original)\s+(?:instructions?|rules?|guidelines?|directives?)",
-        r"|(?:instructions?|rules?|guidelines?|directives?)\s+(?:above|given\s+earlier))\b",    
-    # 영어로 시스템 또는 개발자 프롬프트를 공개하라는 명령    
-        r"(?i)(?<!\bdo\snot\s)(?<!\bdon['’]t\s)(?<!\bnever\s)",
-        r"\b(?:(?:show|tell|give)\s+me|reveal|print|display|output|disclose|repeat|share)\s+",
-        r"(?:(?:the|your|full|entire|original|current|hidden)\s+)*",
-        r"(?:system|developer|internal)[\s-]+(?:prompts?|messages?|instructions?)\b",
+    # 한국어 이전 지시 무시 요청
+    r"(?:이전|기존|앞선|모든)\s*(?:규칙|지시(?:사항)?|지침)\s*(?:을|를)?\s*"
+    r"(?:(?:모두|전부)\s*)?(?:무시\s*(?:하고|해(?:\s*(?:줘|주세요))?|하라|하세요)|따르지\s*마(?:세요)?)\b",
+
+    # 한국어 시스템 프롬프트 또는 개발자 메시지 공개 요청
+    r"(?:(?:시스템|개발자)\s*프롬프트|개발자\s*메시지)\s*(?:을|를)?\s*"
+    r"(?:(?:그대로|전부)\s*)?(?:(?:출력|공개)\s*(?:해(?:\s*(?:줘|주세요))?|하라|하세요)"
+    r"|보여\s*(?:줘|주세요))\b",
+
+    # 영어 이전 지시 무시 요청
+    r"(?<!\bdo\snot\s)(?<!\bdon['’]t\s)(?<!\bnever\s)"
+    r"\b(?:ignore|disregard|override)\s+(?:all\s+)?(?:(?:the|your)\s+)?"
+    r"(?:(?:previous|prior|earlier)\s+(?:instructions?|rules?)|(?:instructions?|rules?)\s+above)\b",
+
+    # 영어 시스템 프롬프트 또는 개발자 메시지 공개 요청
+    r"(?<!\bdo\snot\s)(?<!\bdon['’]t\s)(?<!\bnever\s)"
+    r"\b(?:show\s+me|reveal|print|output|disclose)\s+(?:(?:the|your)\s+)?"
+    r"(?:(?:full|entire)\s+)?(?:(?:system|developer)[\s-]+prompts?|developer\s+messages?)\b",
 ]
 
 def rule_prefilter(payload: dict) -> dict:
